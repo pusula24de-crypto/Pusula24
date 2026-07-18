@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<rect width="1024" height="1024" rx="228" fill="#101828"></rect>
+<g transform="translate(206,206) scale(17)"><mask id="mskm0xnyj"><rect width="36" height="36" fill="#fff"></rect><circle cx="24" cy="12" r="13" fill="#000"></circle></mask>
+  <circle cx="17" cy="19" r="13.5" fill="#ffffff" mask="url(#mskm0xnyj)"></circle>
+  <circle cx="27" cy="9" r="5" fill="#DC2626"></circle></g></svg>

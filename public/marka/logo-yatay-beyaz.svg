@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 72" width="660" height="144">
+<g transform="translate(0,6) scale(1.6667)"><mask id="mk2"><rect width="36" height="36" fill="#fff"></rect><circle cx="24" cy="12" r="13" fill="#000"></circle></mask>
+  <circle cx="17" cy="19" r="13.5" fill="#ffffff" mask="url(#mk2)"></circle>
+  <circle cx="27" cy="9" r="5" fill="#DC2626"></circle></g>
+<text x="74" y="53" font-size="50" font-family="Space Grotesk, sans-serif" font-weight="700" letter-spacing="-1.6" fill="#ffffff">Hab<tspan fill="#7e9bd4">E</tspan>ropa</text></svg>

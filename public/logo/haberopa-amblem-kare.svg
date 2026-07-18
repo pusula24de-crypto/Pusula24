@@ -1,0 +1,5 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="96" fill="#003399"/>
+  <path d="M256 118 L286 200 L374 200 L303 253 L332 340 L256 287 L180 340 L209 253 L138 200 L226 200 Z" fill="#FFCC00"/>
+  <text x="256" y="440" font-family="Archivo, Arial, sans-serif" font-weight="900" font-size="92" letter-spacing="-0.02em" text-anchor="middle" fill="#FFFFFF">opa</text>
+</svg>
