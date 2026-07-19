@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { slugUret } from '@/lib/slug'
+import { gorselSikistir, boyutFormatla } from '@/lib/gorselOptimizasyon'
 import {
   haberKaydet,
   haberSil,
@@ -22,20 +23,37 @@ function isoToDatetimeLocal(iso) {
   return new Date(d.getTime() - yerelOfset).toISOString().slice(0, 16)
 }
 
+// Yüklemeden önce görseli tarayıcıda 1600px/WebP'ye sıkıştırır (bkz.
+// lib/gorselOptimizasyon), sonra Supabase Storage'a atar. boyutBilgisi
+// çağıran tarafın "1.6 MB → 210 KB" gibi bir geri bildirim göstermesi için
+// dönülür.
 async function dosyaYukle(supabase, dosya, onEk = '') {
-  const guvenliAd = dosya.name.replace(/[^a-zA-Z0-9.\-_]/g, '-')
+  let yuklenecekDosya
+  let boyutBilgisi = null
+
+  try {
+    const sonuc = await gorselSikistir(dosya)
+    yuklenecekDosya = sonuc.dosya
+    boyutBilgisi = { orijinalBoyut: sonuc.orijinalBoyut, yeniBoyut: sonuc.yeniBoyut }
+  } catch (err) {
+    return { url: null, error: err.message, boyutBilgisi: null }
+  }
+
+  const guvenliAd = yuklenecekDosya.name.replace(/[^a-zA-Z0-9.\-_]/g, '-')
   const dosyaYolu = `${onEk}${Date.now()}-${guvenliAd}`
 
-  const { error } = await supabase.storage.from('haber-gorselleri').upload(dosyaYolu, dosya)
+  const { error } = await supabase.storage
+    .from('haber-gorselleri')
+    .upload(dosyaYolu, yuklenecekDosya, { contentType: 'image/webp' })
   if (error) {
     const mesaj = error.message?.toLowerCase().includes('bucket not found')
       ? 'Storage bucket bulunamadı. Lütfen Supabase panelinden "haber-gorselleri" adında public bir bucket oluşturun.'
       : 'Görsel yüklenemedi: ' + error.message
-    return { url: null, error: mesaj }
+    return { url: null, error: mesaj, boyutBilgisi: null }
   }
 
   const { data } = supabase.storage.from('haber-gorselleri').getPublicUrl(dosyaYolu)
-  return { url: data.publicUrl, error: null }
+  return { url: data.publicUrl, error: null, boyutBilgisi }
 }
 
 function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onSil, onGorselKaydet }) {
@@ -43,11 +61,13 @@ function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onS
   const [yukleniyor, setYukleniyor] = useState(false)
   const [hata, setHata] = useState('')
   const [kaydediliyor, setKaydediliyor] = useState(false)
+  const [boyutBilgisi, setBoyutBilgisi] = useState(null)
 
   const handleDosyaSecildi = async (e) => {
     const dosya = e.target.files?.[0]
     if (!dosya) return
     setHata('')
+    setBoyutBilgisi(null)
     setYukleniyor(true)
     try {
       const sonuc = await dosyaYukle(supabase, dosya, 'kategori-')
@@ -56,6 +76,7 @@ function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onS
         return
       }
       setGorselUrl(sonuc.url)
+      setBoyutBilgisi(sonuc.boyutBilgisi)
     } finally {
       setYukleniyor(false)
       e.target.value = ''
@@ -125,7 +146,12 @@ function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onS
           {kaydediliyor ? '...' : 'Kaydet'}
         </button>
       </div>
-      {yukleniyor && <p className="pl-[52px] text-xs text-gray-500">Yükleniyor...</p>}
+      {yukleniyor && <p className="pl-[52px] text-xs text-gray-500">Sıkıştırılıyor ve yükleniyor...</p>}
+      {boyutBilgisi && !yukleniyor && (
+        <p className="pl-[52px] text-xs text-green-500">
+          {boyutFormatla(boyutBilgisi.orijinalBoyut)} → {boyutFormatla(boyutBilgisi.yeniBoyut)} (WebP)
+        </p>
+      )}
       {hata && <p className="pl-[52px] text-xs text-red-400">{hata}</p>}
     </li>
   )
@@ -148,6 +174,7 @@ export default function AdminPortal() {
   const [gorselUrl, setGorselUrl] = useState('')
   const [gorselYukleniyor, setGorselYukleniyor] = useState(false)
   const [gorselYuklemeHatasi, setGorselYuklemeHatasi] = useState('')
+  const [gorselBoyutBilgisi, setGorselBoyutBilgisi] = useState(null)
   const [aiGorsel, setAiGorsel] = useState(true)
   const [durum, setDurum] = useState('draft')
   const [kaynakAdi, setKaynakAdi] = useState('')
@@ -159,6 +186,7 @@ export default function AdminPortal() {
   const [yeniKatGorselUrl, setYeniKatGorselUrl] = useState('')
   const [yeniKatGorselYukleniyor, setYeniKatGorselYukleniyor] = useState(false)
   const [yeniKatGorselHata, setYeniKatGorselHata] = useState('')
+  const [yeniKatGorselBoyutBilgisi, setYeniKatGorselBoyutBilgisi] = useState(null)
 
   const [googleDogrulama, setGoogleDogrulama] = useState('')
   const [adsenseKodu, setAdsenseKodu] = useState('')
@@ -248,6 +276,7 @@ export default function AdminPortal() {
     if (!dosya) return
 
     setGorselYuklemeHatasi('')
+    setGorselBoyutBilgisi(null)
     setGorselYukleniyor(true)
 
     try {
@@ -257,6 +286,7 @@ export default function AdminPortal() {
         return
       }
       setGorselUrl(sonuc.url)
+      setGorselBoyutBilgisi(sonuc.boyutBilgisi)
     } finally {
       setGorselYukleniyor(false)
       e.target.value = ''
@@ -268,6 +298,7 @@ export default function AdminPortal() {
     if (!dosya) return
 
     setYeniKatGorselHata('')
+    setYeniKatGorselBoyutBilgisi(null)
     setYeniKatGorselYukleniyor(true)
 
     try {
@@ -277,6 +308,7 @@ export default function AdminPortal() {
         return
       }
       setYeniKatGorselUrl(sonuc.url)
+      setYeniKatGorselBoyutBilgisi(sonuc.boyutBilgisi)
     } finally {
       setYeniKatGorselYukleniyor(false)
       e.target.value = ''
@@ -297,6 +329,7 @@ export default function AdminPortal() {
     setKaynakAdi(h.kaynak_adi || '')
     setKaynakUrl(h.kaynak_url || '')
     setYayinZamani(h.durum === 'published' ? isoToDatetimeLocal(h.yayin_tarihi) : '')
+    setGorselBoyutBilgisi(null)
     setActiveTab('haber-ekle')
   }
 
@@ -317,6 +350,7 @@ export default function AdminPortal() {
       setYeniKatAd('')
       setYeniKatSlug('')
       setYeniKatGorselUrl('')
+      setYeniKatGorselBoyutBilgisi(null)
       veriYukle()
       setMesaj({ tip: 'success', icerik: 'Kategori başarıyla eklendi!' })
     } else {
@@ -368,6 +402,7 @@ export default function AdminPortal() {
     setKaynakAdi('')
     setKaynakUrl('')
     setYayinZamani('')
+    setGorselBoyutBilgisi(null)
   }
 
   const handleSignOut = async () => {
@@ -438,10 +473,15 @@ export default function AdminPortal() {
                       Bilgisayardan Yükle
                       <input type="file" accept="image/*" onChange={handleGorselDosyaSecildi} className="hidden" disabled={gorselYukleniyor} />
                     </label>
-                    {gorselYukleniyor && <span className="text-sm text-gray-400">Yükleniyor...</span>}
+                    {gorselYukleniyor && <span className="text-sm text-gray-400">Sıkıştırılıyor ve yükleniyor...</span>}
                   </div>
                   {gorselYuklemeHatasi && (
                     <p className="mt-1 text-xs text-red-400">{gorselYuklemeHatasi}</p>
+                  )}
+                  {gorselBoyutBilgisi && !gorselYukleniyor && (
+                    <p className="mt-1 text-xs text-green-500">
+                      {boyutFormatla(gorselBoyutBilgisi.orijinalBoyut)} → {boyutFormatla(gorselBoyutBilgisi.yeniBoyut)} (WebP)
+                    </p>
                   )}
                   {gorselUrl && !gorselYukleniyor && (
                     <img src={gorselUrl} alt="Önizleme" className="mt-2 h-32 w-full rounded object-cover border border-gray-800" />
@@ -587,9 +627,14 @@ export default function AdminPortal() {
                     Bilgisayardan Yükle
                     <input type="file" accept="image/*" onChange={handleYeniKatGorselSecildi} className="hidden" disabled={yeniKatGorselYukleniyor} />
                   </label>
-                  {yeniKatGorselYukleniyor && <span className="text-sm text-gray-400">Yükleniyor...</span>}
+                  {yeniKatGorselYukleniyor && <span className="text-sm text-gray-400">Sıkıştırılıyor ve yükleniyor...</span>}
                 </div>
                 {yeniKatGorselHata && <p className="mt-1 text-xs text-red-400">{yeniKatGorselHata}</p>}
+                {yeniKatGorselBoyutBilgisi && !yeniKatGorselYukleniyor && (
+                  <p className="mt-1 text-xs text-green-500">
+                    {boyutFormatla(yeniKatGorselBoyutBilgisi.orijinalBoyut)} → {boyutFormatla(yeniKatGorselBoyutBilgisi.yeniBoyut)} (WebP)
+                  </p>
+                )}
                 {yeniKatGorselUrl && !yeniKatGorselYukleniyor && (
                   <img src={yeniKatGorselUrl} alt="Önizleme" className="mt-2 h-24 w-full rounded object-cover border border-gray-800" />
                 )}
