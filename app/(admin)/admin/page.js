@@ -504,12 +504,12 @@ export default function AdminPortal() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Kaynak Adı (Örn: Polizei Duisburg)</label>
-                    <input type="text" required value={kaynakAdi} onChange={(e) => setKaynakAdi(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
+                    <label className="block text-sm font-medium mb-1">Kaynak Adı (opsiyonel)</label>
+                    <input type="text" placeholder="Örn: Polizei Duisburg" value={kaynakAdi} onChange={(e) => setKaynakAdi(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Kaynak URL</label>
-                    <input type="url" required value={kaynakUrl} onChange={(e) => setKaynakUrl(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
+                    <label className="block text-sm font-medium mb-1">Kaynak URL (opsiyonel)</label>
+                    <input type="url" value={kaynakUrl} onChange={(e) => setKaynakUrl(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
                   </div>
                 </div>
                 <div>

@@ -23,8 +23,8 @@ export async function haberKaydet(formData) {
   const gorsel_url = formData.get('gorsel_url')
   const ai_gorsel_mi = formData.get('ai_gorsel_mi') === 'true'
   const durum = formData.get('durum')
-  const kaynak_adi = formData.get('kaynak_adi')
-  const kaynak_url = formData.get('kaynak_url')
+  const kaynak_adi = formData.get('kaynak_adi')?.trim() || null
+  const kaynak_url = formData.get('kaynak_url')?.trim() || null
   const yayin_zamani = formData.get('yayin_zamani')
 
   // Zamanlanmış yayın: ileri bir tarih/saat seçildiyse haber otomatik

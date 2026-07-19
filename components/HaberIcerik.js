@@ -72,14 +72,18 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
       {haber.kaynak_adi && (
         <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
           Bu haber{' '}
-          <a
-            href={haber.kaynak_url}
-            target="_blank"
-            rel="nofollow noopener"
-            className="font-semibold text-red-600 hover:underline"
-          >
-            {haber.kaynak_adi}
-          </a>{' '}
+          {haber.kaynak_url ? (
+            <a
+              href={haber.kaynak_url}
+              target="_blank"
+              rel="nofollow noopener"
+              className="font-semibold text-red-600 hover:underline"
+            >
+              {haber.kaynak_adi}
+            </a>
+          ) : (
+            <span className="font-semibold text-neutral-700">{haber.kaynak_adi}</span>
+          )}{' '}
           resmi açıklaması temel alınarak hazırlanmıştır.
         </div>
       )}
