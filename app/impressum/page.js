@@ -3,7 +3,7 @@
 // §5 DDG (genel künye) + §18 Abs. 2 MStV (gazetecilik içeriği
 // sorumlusu) yapısına göre hazırlanmıştır.
 //
-// ⚠️ YAYINA ALMADAN ÖNCE DOLDURULACAK 2 ALAN: [E-POSTA] ve [TELEFON].
+// ⚠️ YAYINA ALMADAN ÖNCE DOLDURULACAK 2 ALAN: info@verixis.de ve +49 176 70095829.
 //    §5 DDG "hızlı elektronik iletişim" ister; e-posta ZORUNLU,
 //    telefon şiddetle tavsiye edilir (Abmahnung riskini düşürür).
 // ⚠️ İsim yazımı: Resmi kimlikteki yazımla birebir aynı olmalı
@@ -42,9 +42,9 @@ export default function ImpressumPage() {
         <div>
           <h2 className="text-base font-bold text-neutral-900">Kontakt</h2>
           <p className="mt-2">
-            Telefon: [TELEFON]
+            Telefon: +49 176 70095829
             <br />
-            E-Mail: [E-POSTA]
+            E-Mail: info@verixis.de
           </p>
         </div>
 

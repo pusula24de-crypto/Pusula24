@@ -6,7 +6,7 @@
 // API'leri (Open-Meteo, Frankfurter, gold-api), tarayıcı konum izni,
 // localStorage önbelleği ve yalnızca admin alanındaki oturum çerezi.
 //
-// ⚠️ DOLDURULACAK: [E-POSTA] (Impressum'dakiyle aynı olabilir).
+// ⚠️ DOLDURULACAK: info@verixis.de (Impressum'dakiyle aynı olabilir).
 // ⚠️ İleride ANALİTİK, REKLAM, YORUM veya BÜLTEN eklerseniz bu metin
 //    GÜNCELLENMEK ZORUNDA (ve reklam/analitik için consent banner gerekir).
 // ⚠️ Hosting Cloudflare dışında olacaksa 3. bölümü uyarlayın.
@@ -32,7 +32,7 @@ export default function DatenschutzPage() {
             <br />
             Theresienstraße 2A, 86153 Augsburg, Deutschland
             <br />
-            E-Mail: [E-POSTA]
+            E-Mail: info@verixis.de
           </p>
         </div>
 
