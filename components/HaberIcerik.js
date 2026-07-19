@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Markdown from 'react-markdown'
+import remarkBreaks from 'remark-breaks'
 import { formatTarih } from '@/lib/format'
 import PaylasimButonlari from './PaylasimButonlari'
 
@@ -66,7 +67,11 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
       )}
 
       <article className="prose prose-lg prose-headings:font-heading prose-a:text-red-600 hover:prose-a:text-red-700 mx-auto mt-8 max-w-2xl">
-        <Markdown>{haber.govde}</Markdown>
+        {/* remark-breaks: tek \n satır sonlarını da <br> olarak render eder.
+            Admin panelden yapıştırılan metinlerde paragraflar arası çift
+            boşluk kaybolsa bile satırlar birbirine "dümdüz" akmaz, en azından
+            alt alta düzgün ayrışır. */}
+        <Markdown remarkPlugins={[remarkBreaks]}>{haber.govde}</Markdown>
       </article>
 
       {haber.kaynak_adi && (

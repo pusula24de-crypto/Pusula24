@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { markdownNormalizeEt } from '@/lib/markdownNormalize'
 
 async function yetkiKontrolu() {
   const supabase = await createClient()
@@ -17,7 +18,7 @@ export async function haberKaydet(formData) {
   const id = formData.get('id')
   const baslik = formData.get('baslik')
   const ozet = formData.get('ozet')
-  const govde = formData.get('govde')
+  const govde = markdownNormalizeEt(formData.get('govde'))
   const slug = formData.get('slug')
   const kategori_id = formData.get('kategori_id')
   const gorsel_url = formData.get('gorsel_url')
