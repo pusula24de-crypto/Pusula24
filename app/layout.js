@@ -33,7 +33,7 @@ export async function generateMetadata() {
   const googleDogrulama = ayarlar.google_site_verification?.trim()
 
   return {
-    metadataBase: new URL('https://pusula24.de'),
+    metadataBase: new URL('https://www.pusula24.de'),
     title: 'Pusula24 - Avrupa’nın Gündemi',
     description: 'Almanya’da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.',
     icons: {
@@ -48,7 +48,7 @@ export async function generateMetadata() {
       title: 'Pusula24 - Avrupa’nın Gündemi',
       description: 'Almanya’da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.',
       siteName: 'Pusula24',
-      url: 'https://pusula24.de',
+      url: 'https://www.pusula24.de',
       images: [
         {
           url: '/marka/logo-yatay-renkli.png',

@@ -3,7 +3,7 @@ import Markdown from 'react-markdown'
 import { formatTarih } from '@/lib/format'
 import PaylasimButonlari from './PaylasimButonlari'
 
-const SITE_URL = 'https://pusula24.de'
+const SITE_URL = 'https://www.pusula24.de'
 
 // Hem sunucu (ilk haber, SEO) hem de istemci (SiradakiHaberAkisi ile akışa
 // eklenen haberler) tarafında kullanılabilen saf sunum bileşeni. Tam haber

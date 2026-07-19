@@ -5,7 +5,7 @@ import SiradakiHaberAkisi from '@/components/SiradakiHaberAkisi'
 
 export const revalidate = 300
 
-const SITE_URL = 'https://pusula24.de'
+const SITE_URL = 'https://www.pusula24.de'
 
 async function haberGetir(slug) {
   const supabase = await createClient()

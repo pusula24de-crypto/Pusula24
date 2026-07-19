@@ -5,7 +5,7 @@ import KategoriIkon from '@/lib/kategoriIkonlari'
 
 export const revalidate = 300
 
-const SITE_URL = 'https://pusula24.de'
+const SITE_URL = 'https://www.pusula24.de'
 
 // Kategori hero görselleri — slug bazlı sabit temsili görseller.
 // Gerçek görseller elde edilince buradaki URL'ler değiştirilebilir.

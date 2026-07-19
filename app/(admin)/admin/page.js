@@ -421,7 +421,7 @@ export default function AdminPortal() {
                 <div>
                   <label className="block text-sm font-medium mb-1">URL Slug (Otomatik Oluşur)</label>
                   <input type="text" required value={slug} onChange={(e) => { setSlug(e.target.value); setSlugManuel(true); }} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
-                  <p className="text-xs text-gray-500 mt-1">Önizleme: https://pusula24.de/haber/<span className="text-red-400">{slug}</span></p>
+                  <p className="text-xs text-gray-500 mt-1">Önizleme: https://www.pusula24.de/haber/<span className="text-red-400">{slug}</span></p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Kategori</label>
