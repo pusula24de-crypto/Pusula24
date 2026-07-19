@@ -7,6 +7,17 @@ export const revalidate = 300
 
 const SITE_URL = 'https://www.pusula24.de'
 
+// Admin panelde virgülle ayrılmış ham metin olarak saklanan SEO
+// etiketlerini ("Kindergeld, çocuk parası, ...") temiz bir diziye çevirir.
+// Boş/tekrar eden boşluklu girdileri eler; hiç etiket yoksa boş dizi döner.
+function etiketleriAyristir(seo_etiketleri) {
+  if (!seo_etiketleri) return []
+  return seo_etiketleri
+    .split(',')
+    .map((etiket) => etiket.trim())
+    .filter(Boolean)
+}
+
 async function haberGetir(slug) {
   const supabase = await createClient()
   const { data: haber } = await supabase
@@ -24,9 +35,12 @@ export async function generateMetadata({ params }) {
   const haber = await haberGetir(slug)
   if (!haber) return {}
 
+  const etiketler = etiketleriAyristir(haber.seo_etiketleri)
+
   return {
     title: haber.baslik,
     description: haber.ozet,
+    ...(etiketler.length > 0 ? { keywords: etiketler } : {}),
     alternates: {
       canonical: `${SITE_URL}/haber/${haber.slug}`,
     },
@@ -47,6 +61,8 @@ export default async function HaberDetay({ params }) {
 
   if (!haber) notFound()
 
+  const etiketler = etiketleriAyristir(haber.seo_etiketleri)
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
@@ -55,6 +71,7 @@ export default async function HaberDetay({ params }) {
     image: haber.gorsel_url ? [haber.gorsel_url] : [],
     datePublished: haber.yayin_tarihi,
     dateModified: haber.updated_at || haber.yayin_tarihi,
+    ...(etiketler.length > 0 ? { keywords: etiketler.join(', ') } : {}),
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': `${SITE_URL}/haber/${haber.slug}`,

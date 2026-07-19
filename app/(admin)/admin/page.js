@@ -179,6 +179,7 @@ export default function AdminPortal() {
   const [durum, setDurum] = useState('draft')
   const [kaynakAdi, setKaynakAdi] = useState('')
   const [kaynakUrl, setKaynakUrl] = useState('')
+  const [seoEtiketleri, setSeoEtiketleri] = useState('')
   const [yayinZamani, setYayinZamani] = useState('')
 
   const [yeniKatAd, setYeniKatAd] = useState('')
@@ -257,6 +258,7 @@ export default function AdminPortal() {
     formData.append('durum', durum)
     formData.append('kaynak_adi', kaynakAdi)
     formData.append('kaynak_url', kaynakUrl)
+    formData.append('seo_etiketleri', seoEtiketleri)
     formData.append('yayin_zamani', yayinZamani)
 
     const response = await haberKaydet(formData)
@@ -328,6 +330,7 @@ export default function AdminPortal() {
     setDurum(h.durum)
     setKaynakAdi(h.kaynak_adi || '')
     setKaynakUrl(h.kaynak_url || '')
+    setSeoEtiketleri(h.seo_etiketleri || '')
     setYayinZamani(h.durum === 'published' ? isoToDatetimeLocal(h.yayin_tarihi) : '')
     setGorselBoyutBilgisi(null)
     setActiveTab('haber-ekle')
@@ -401,6 +404,7 @@ export default function AdminPortal() {
     setDurum('draft')
     setKaynakAdi('')
     setKaynakUrl('')
+    setSeoEtiketleri('')
     setYayinZamani('')
     setGorselBoyutBilgisi(null)
   }
@@ -511,6 +515,19 @@ export default function AdminPortal() {
                     <label className="block text-sm font-medium mb-1">Kaynak URL (opsiyonel)</label>
                     <input type="url" value={kaynakUrl} onChange={(e) => setKaynakUrl(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">SEO Etiketleri (virgülle ayırın, opsiyonel)</label>
+                  <input
+                    type="text"
+                    placeholder="Kindergeld, çocuk parası, Almanya sosyal yardım"
+                    value={seoEtiketleri}
+                    onChange={(e) => setSeoEtiketleri(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Meta keywords ve JSON-LD&apos;ye yansır; arama motorlarına haberin konusunu netleştirir.
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Yayın Durumu</label>

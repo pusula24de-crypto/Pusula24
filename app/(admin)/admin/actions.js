@@ -26,6 +26,7 @@ export async function haberKaydet(formData) {
   const durum = formData.get('durum')
   const kaynak_adi = formData.get('kaynak_adi')?.trim() || null
   const kaynak_url = formData.get('kaynak_url')?.trim() || null
+  const seo_etiketleri = formData.get('seo_etiketleri')?.trim() || null
   const yayin_zamani = formData.get('yayin_zamani')
 
   // Zamanlanmış yayın: ileri bir tarih/saat seçildiyse haber otomatik
@@ -54,6 +55,7 @@ export async function haberKaydet(formData) {
     durum: durumSon,
     kaynak_adi,
     kaynak_url,
+    seo_etiketleri,
     yazar_id: user.id,
     yayin_tarihi,
   }
