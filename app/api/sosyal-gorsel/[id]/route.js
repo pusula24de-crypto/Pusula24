@@ -1,7 +1,33 @@
 import { ImageResponse } from 'next/og'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import sharp from 'sharp'
 import { createClient } from '@/lib/supabase/server'
+
+// Marka lacivert — arka plan görseli hiç hazırlanamazsa (indirilemez/
+// dönüştürülemezse) düz zemin olarak kullanılır; "boş" değil "sade" görünür.
+const YEDEK_ZEMIN_RENGI = '#1E3A6E'
+
+// Satori (ImageResponse'un render motoru) yalnızca PNG/JPEG render edebilir,
+// WebP'yi arka plan <img> olarak GÖSTEREMEZ (sessizce boş kalır). Haber
+// görselleri artık admin panelde WebP'ye sıkıştırılarak kaydedildiği için,
+// arka plana koymadan önce haberin görselini burada sharp ile indirip
+// JPEG'e çeviriyoruz — kaynak formatı ne olursa olsun (WebP/PNG/AVIF/JPEG)
+// Satori'nin her zaman render edebileceği tek bir formata normalize eder.
+// Büyük dış URL'lere (admin'den elle yapıştırılan, sıkıştırmadan geçmemiş
+// görseller) karşı da resize ile üst sınır konur, hem hız hem bellek için.
+async function gorselHazirla(url) {
+  const yanit = await fetch(url)
+  if (!yanit.ok) {
+    throw new Error(`Görsel indirilemedi (HTTP ${yanit.status}): ${url}`)
+  }
+  const arrayBuffer = await yanit.arrayBuffer()
+  const jpegBuffer = await sharp(Buffer.from(arrayBuffer))
+    .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
+    .jpeg({ quality: 85 })
+    .toBuffer()
+  return `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`
+}
 
 // Font dosyaları Google Fonts CDN'den (eski/legacy tarayıcı isteği ile)
 // latin-ext kapsayan tam TTF olarak indirilip assets/fonts/ altına konuldu.
@@ -87,6 +113,16 @@ export async function GET(request, { params }) {
   try {
     const [{ black, regular }, logoDataUri] = await Promise.all([fontlariYukle(), logoYukle()])
 
+    // Arka plan görseli hazırlığı ayrı bir try/catch'te: başarısız olursa
+    // (görsel indirilemez/dönüştürülemez) tüm üretim 500 ile çökmek yerine
+    // düz lacivert zemine düşer.
+    let arkaPlanDataUri = null
+    try {
+      arkaPlanDataUri = await gorselHazirla(haber.gorsel_url)
+    } catch (gorselHatasi) {
+      console.error('[sosyal-gorsel] Arka plan görseli hazırlanamadı, düz zemine düşülüyor:', gorselHatasi)
+    }
+
     const gorsel = new ImageResponse(
       (
         <div
@@ -100,20 +136,36 @@ export async function GET(request, { params }) {
         >
           {/* TAM EKRAN GÖRSEL — yatayda ortalı, dikeyde alt kenardan
               kırpılır (Gemini'nin sağ alt köşedeki standart AI etiketi
-              her zaman görünür kalsın diye üstten kırpma yapılır). */}
-          <img
-            src={haber.gorsel_url}
-            alt=""
-            width={GENISLIK}
-            height={YUKSEKLIK}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              objectFit: 'cover',
-              objectPosition: 'center bottom',
-            }}
-          />
+              her zaman görünür kalsın diye üstten kırpma yapılır).
+              Görsel hazırlanamadıysa (indirme/dönüştürme hatası) düz
+              lacivert zemine düşülür — "boş" değil "sade" görünür. */}
+          {arkaPlanDataUri ? (
+            <img
+              src={arkaPlanDataUri}
+              alt=""
+              width={GENISLIK}
+              height={YUKSEKLIK}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                objectFit: 'cover',
+                objectPosition: 'center bottom',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                display: 'flex',
+                width: GENISLIK,
+                height: YUKSEKLIK,
+                backgroundColor: YEDEK_ZEMIN_RENGI,
+              }}
+            />
+          )}
 
           {/* Üstte hafif karartma — logo her zeminde okunaklı kalsın. */}
           <div
