@@ -42,7 +42,7 @@ export async function GET() {
   const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Haberopa - Almanya Son Dakika Haberleri</title>
+    <title>Pusula24 - Avrupa'nın Gündemi</title>
     <link>${SITE_URL}</link>
     <description>Almanya'da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.</description>
     <language>tr</language>

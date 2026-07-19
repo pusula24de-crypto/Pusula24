@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 72" width="660" height="144">
-<g transform="translate(0,6) scale(1.6667)"><mask id="mk1"><rect width="36" height="36" fill="#fff"></rect><circle cx="24" cy="12" r="13" fill="#000"></circle></mask>
-  <circle cx="17" cy="19" r="13.5" fill="#1E3A6E" mask="url(#mk1)"></circle>
-  <circle cx="27" cy="9" r="5" fill="#DC2626"></circle></g>
-<text x="74" y="53" font-size="50" font-family="Space Grotesk, sans-serif" font-weight="700" letter-spacing="-1.6" fill="#101828">Hab<tspan fill="#1E3A6E">E</tspan>ropa</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" width="600" height="144">
+<g transform="translate(0,6) scale(1.6667)"><circle cx="18" cy="18" r="16" fill="none" stroke="#1E3A6E" stroke-width="3.5"></circle>
+    <path d="M18 18 L24.5 11.5 L20.5 20.5 Z" fill="#DC2626"></path>
+    <path d="M18 18 L11.5 24.5 L15.5 15.5 Z" fill="#1E3A6E"></path></g>
+<text x="74" y="53" font-size="50" letter-spacing="-1.6" font-family="Space Grotesk, sans-serif" font-weight="700" fill="#101828">Pusula<tspan fill="#DC2626">24</tspan></text></svg>

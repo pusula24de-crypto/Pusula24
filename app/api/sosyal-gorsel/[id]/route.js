@@ -14,9 +14,11 @@ async function fontlariYukle() {
   return { black, regular }
 }
 
+// Sol üst damga: Pusula24 beyaz amblemi (pusula sembolü). SVG metin içermediği
+// için Satori'de data URI olarak güvenle render edilir (font bağımsız).
 async function logoYukle() {
-  const buffer = await readFile(join(process.cwd(), 'public/marka/logo-yatay-beyaz.png'))
-  return `data:image/png;base64,${buffer.toString('base64')}`
+  const buffer = await readFile(join(process.cwd(), 'public/marka/sembol-beyaz.svg'))
+  return `data:image/svg+xml;base64,${buffer.toString('base64')}`
 }
 
 function mansetBoyutuHesapla(baslik) {
@@ -141,15 +143,16 @@ export async function GET(request, { params }) {
             }}
           />
 
-          {/* SOL ÜST — beyaz yatay logo. Sağ üst/sağ alt köşelere hiçbir
-              öğe konulmuyor. */}
+          {/* SOL ÜST — beyaz Pusula24 amblemi (kare). Sağ üst/sağ alt köşelere
+              hiçbir öğe konulmuyor. */}
           <img
             src={logoDataUri}
             alt=""
-            height={52}
+            width={72}
+            height={72}
             style={{
               position: 'absolute',
-              top: 48 + UST_GUVENLI_ALAN,
+              top: 44 + UST_GUVENLI_ALAN,
               left: 48,
               objectFit: 'contain',
             }}
@@ -206,7 +209,7 @@ export async function GET(request, { params }) {
             </div>
           </div>
 
-          {/* EN ALT ORTA — haberopa.com + koşullu Symbolbild. */}
+          {/* EN ALT ORTA — pusula24.de + koşullu Symbolbild. */}
           <div
             style={{
               position: 'absolute',
@@ -228,7 +231,7 @@ export async function GET(request, { params }) {
                 color: '#FFFFFF',
               }}
             >
-              haberopa.com
+              pusula24.de
             </div>
             <div
               style={{

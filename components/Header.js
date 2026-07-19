@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube, FaTiktok } from 'react-icons/fa6'
-import HaberopaLogo from './HaberopaLogo'
+import Pusula24Logo from './Pusula24Logo'
 import AramaKutusu from './AramaKutusu'
 
 const SOSYAL_LINKLER = [
@@ -24,7 +24,7 @@ export default function Header({ kategoriler }) {
       <div className="bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/" className="shrink-0">
-            <HaberopaLogo varyant="renkli" className="h-10 w-auto md:h-11" />
+            <Pusula24Logo varyant="renkli" className="h-10 w-auto md:h-11" />
           </Link>
 
           <div className="flex items-center gap-4">

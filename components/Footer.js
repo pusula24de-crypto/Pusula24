@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube, FaTiktok } from 'react-icons/fa6'
-import HaberopaLogo from './HaberopaLogo'
+import Pusula24Logo from './Pusula24Logo'
 
 const SOSYAL_LINKLER = [
   { Icon: FaFacebookF, label: 'Facebook', href: '#' },
@@ -16,7 +16,7 @@ export default function Footer({ kategoriler }) {
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-12 md:grid-cols-3">
         <div>
           <Link href="/" className="inline-block">
-            <HaberopaLogo varyant="beyaz" className="h-9 w-auto" />
+            <Pusula24Logo varyant="beyaz" className="h-9 w-auto" />
           </Link>
           <p className="mt-3 max-w-xs text-sm text-neutral-400">
             Almanya&apos;da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.
@@ -62,7 +62,7 @@ export default function Footer({ kategoriler }) {
       </div>
 
       <div className="border-t border-neutral-800 py-6 text-center text-xs text-neutral-500">
-        <p>© {new Date().getFullYear()} Haberopa. Tüm hakları saklıdır.</p>
+        <p>© {new Date().getFullYear()} Pusula24. Tüm hakları saklıdır.</p>
         <p className="mt-1 text-neutral-600">KI-destekli içerik</p>
       </div>
     </footer>

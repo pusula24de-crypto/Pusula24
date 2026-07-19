@@ -5,22 +5,22 @@ import KategoriIkon from '@/lib/kategoriIkonlari'
 
 export const revalidate = 300
 
-const SITE_URL = 'https://haberopa.com'
+const SITE_URL = 'https://pusula24.de'
 
 // Kategori hero görselleri — slug bazlı sabit temsili görseller.
 // Gerçek görseller elde edilince buradaki URL'ler değiştirilebilir.
 const KATEGORI_GORSELLERI = {
-  almanya: 'https://picsum.photos/seed/haberopa-almanya/1600/500',
-  avrupa: 'https://picsum.photos/seed/haberopa-avrupa/1600/500',
-  dunya: 'https://picsum.photos/seed/haberopa-dunya/1600/500',
-  'kultur-sanat': 'https://picsum.photos/seed/haberopa-kultur-sanat/1600/500',
-  spor: 'https://picsum.photos/seed/haberopa-spor/1600/500',
-  turkiye: 'https://picsum.photos/seed/haberopa-turkiye/1600/500',
-  yasam: 'https://picsum.photos/seed/haberopa-yasam/1600/500',
+  almanya: 'https://picsum.photos/seed/pusula24-almanya/1600/500',
+  avrupa: 'https://picsum.photos/seed/pusula24-avrupa/1600/500',
+  dunya: 'https://picsum.photos/seed/pusula24-dunya/1600/500',
+  'kultur-sanat': 'https://picsum.photos/seed/pusula24-kultur-sanat/1600/500',
+  spor: 'https://picsum.photos/seed/pusula24-spor/1600/500',
+  turkiye: 'https://picsum.photos/seed/pusula24-turkiye/1600/500',
+  yasam: 'https://picsum.photos/seed/pusula24-yasam/1600/500',
 }
 
 function kategoriGorseliGetir(slug) {
-  return KATEGORI_GORSELLERI[slug] || `https://picsum.photos/seed/haberopa-${slug}/1600/500`
+  return KATEGORI_GORSELLERI[slug] || `https://picsum.photos/seed/pusula24-${slug}/1600/500`
 }
 
 async function kategoriGetir(slug) {
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }) {
   if (!kategori) return {}
 
   return {
-    title: `${kategori.ad} Haberleri | Haberopa`,
+    title: `${kategori.ad} Haberleri | Pusula24`,
     description: `${kategori.ad} kategorisindeki en güncel haberler.`,
     alternates: {
       canonical: `${SITE_URL}/kategori/${kategori.slug}`,

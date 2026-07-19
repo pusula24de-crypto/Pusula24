@@ -5,7 +5,7 @@ import SiradakiHaberAkisi from '@/components/SiradakiHaberAkisi'
 
 export const revalidate = 300
 
-const SITE_URL = 'https://haberopa.com'
+const SITE_URL = 'https://pusula24.de'
 
 async function haberGetir(slug) {
   const supabase = await createClient()
@@ -59,13 +59,13 @@ export default async function HaberDetay({ params }) {
       '@type': 'WebPage',
       '@id': `${SITE_URL}/haber/${haber.slug}`,
     },
-    author: [{ '@type': 'Organization', name: 'Haberopa' }],
+    author: [{ '@type': 'Organization', name: 'Pusula24' }],
     publisher: {
       '@type': 'Organization',
-      name: 'Haberopa',
+      name: 'Pusula24',
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/marka/logo-yatay-renkli-2000.png`,
+        url: `${SITE_URL}/marka/logo-yatay-renkli.png`,
       },
     },
   }

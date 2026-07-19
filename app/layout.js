@@ -33,8 +33,8 @@ export async function generateMetadata() {
   const googleDogrulama = ayarlar.google_site_verification?.trim()
 
   return {
-    metadataBase: new URL('https://haberopa.com'),
-    title: 'Haberopa - Almanya Son Dakika Haberleri',
+    metadataBase: new URL('https://pusula24.de'),
+    title: 'Pusula24 - Avrupa’nın Gündemi',
     description: 'Almanya’da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.',
     icons: {
       icon: '/marka/favicon.svg',
@@ -45,16 +45,24 @@ export async function generateMetadata() {
       ? { verification: { google: googleDogrulama } }
       : {}),
     openGraph: {
-      title: 'Haberopa - Almanya Son Dakika Haberleri',
+      title: 'Pusula24 - Avrupa’nın Gündemi',
       description: 'Almanya’da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.',
+      siteName: 'Pusula24',
+      url: 'https://pusula24.de',
       images: [
         {
-          url: '/marka/logo-yatay-renkli-2000.png',
-          width: 2000,
-          height: 436,
-          alt: 'Haberopa',
+          url: '/marka/logo-yatay-renkli.png',
+          width: 1800,
+          height: 432,
+          alt: 'Pusula24',
         },
       ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Pusula24 - Avrupa’nın Gündemi',
+      description: 'Almanya’da yaşayan Türk topluluğu için tarafsız, hızlı ve doğru haber portalı.',
+      images: ['/marka/logo-yatay-renkli.png'],
     },
     robots: {
       index: true,

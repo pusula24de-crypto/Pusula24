@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" width="480" height="320">
+<g transform="translate(84,0) scale(2)"><circle cx="18" cy="18" r="16" fill="none" stroke="#1E3A6E" stroke-width="3.5"></circle>
+    <path d="M18 18 L24.5 11.5 L20.5 20.5 Z" fill="#DC2626"></path>
+    <path d="M18 18 L11.5 24.5 L15.5 15.5 Z" fill="#1E3A6E"></path></g>
+<text x="120" y="124" font-size="38" letter-spacing="-1.2" font-family="Space Grotesk, sans-serif" font-weight="700" fill="#101828" text-anchor="middle">Pusula<tspan fill="#DC2626">24</tspan></text>
+<text x="120" y="150" font-size="12" letter-spacing="3.4" font-family="Space Grotesk, sans-serif" font-weight="500" fill="#7a8699" text-anchor="middle">AVRUPA&#39;NIN GÜNDEMİ</text></svg>

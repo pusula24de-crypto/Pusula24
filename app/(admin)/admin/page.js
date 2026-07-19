@@ -380,7 +380,7 @@ export default function AdminPortal() {
     <div className="min-h-screen bg-gray-950 text-gray-100 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-          <h1 className="text-3xl font-bold tracking-tight text-red-500">HABEROPA <span className="text-white text-sm font-normal">Yazı İşleri Portalı</span></h1>
+          <h1 className="text-3xl font-bold tracking-tight text-red-500">PUSULA24 <span className="text-white text-sm font-normal">Yazı İşleri Portalı</span></h1>
           <button onClick={handleSignOut} className="bg-red-950 text-red-400 border border-red-800 px-4 py-2 rounded-md hover:bg-red-900 transition text-sm">Güvenli Çıkış</button>
         </div>
 
@@ -421,7 +421,7 @@ export default function AdminPortal() {
                 <div>
                   <label className="block text-sm font-medium mb-1">URL Slug (Otomatik Oluşur)</label>
                   <input type="text" required value={slug} onChange={(e) => { setSlug(e.target.value); setSlugManuel(true); }} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600" />
-                  <p className="text-xs text-gray-500 mt-1">Önizleme: https://haberopa.com/haber/<span className="text-red-400">{slug}</span></p>
+                  <p className="text-xs text-gray-500 mt-1">Önizleme: https://pusula24.de/haber/<span className="text-red-400">{slug}</span></p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Kategori</label>

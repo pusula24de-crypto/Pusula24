@@ -22,7 +22,7 @@ export default function AdSenseYukleyici({ kod }) {
         yeni.setAttribute(attr.name, attr.value)
       }
       if (eski.textContent) yeni.textContent = eski.textContent
-      yeni.setAttribute('data-adsense-haberopa', 'true')
+      yeni.setAttribute('data-adsense-pusula24', 'true')
       document.head.appendChild(yeni)
       eklenenler.push(yeni)
     })

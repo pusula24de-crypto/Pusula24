@@ -42,7 +42,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-gray-900 border border-gray-800 rounded-lg p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-black tracking-tight text-red-500">HABEROPA</h1>
+          <h1 className="text-3xl font-black tracking-tight text-red-500">PUSULA24</h1>
           <p className="text-sm text-gray-400">Yazı İşleri Giriş Paneli</p>
         </div>
 
@@ -61,7 +61,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600 transition"
-              placeholder="isim@haberopa.com"
+              placeholder="isim@pusula24.de"
             />
           </div>
 

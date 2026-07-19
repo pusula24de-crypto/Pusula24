@@ -15,7 +15,7 @@ function sorguTemizle(metin) {
 export async function generateMetadata({ searchParams }) {
   const { q } = await searchParams
   return {
-    title: q ? `Arama: ${q} | Haberopa` : 'Arama | Haberopa',
+    title: q ? `Arama: ${q} | Pusula24` : 'Arama | Pusula24',
     robots: { index: false, follow: false },
   }
 }

@@ -3,7 +3,7 @@ import Markdown from 'react-markdown'
 import { formatTarih } from '@/lib/format'
 import PaylasimButonlari from './PaylasimButonlari'
 
-const SITE_URL = 'https://haberopa.com'
+const SITE_URL = 'https://pusula24.de'
 
 // Hem sunucu (ilk haber, SEO) hem de istemci (SiradakiHaberAkisi ile akışa
 // eklenen haberler) tarafında kullanılabilen saf sunum bileşeni. Tam haber
@@ -38,7 +38,7 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
           <p className="border-l-4 border-red-600 pl-4 text-xl text-neutral-600">{haber.ozet}</p>
         )}
         <div className="flex items-center gap-3 border-b border-neutral-200 pb-4 text-xs text-neutral-500">
-          <span>Yayıncı: <b className="text-neutral-700">Haberopa Redaksiyon</b></span>
+          <span>Yayıncı: <b className="text-neutral-700">Pusula24 Redaksiyon</b></span>
           <span>•</span>
           <span>{formatTarih(haber.yayin_tarihi)}</span>
         </div>
