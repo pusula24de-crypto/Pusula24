@@ -8,11 +8,11 @@ import Pusula24Logo from './Pusula24Logo'
 import AramaKutusu from './AramaKutusu'
 
 const SOSYAL_LINKLER = [
-  { Icon: FaFacebookF, label: 'Facebook', href: '#' },
-  { Icon: FaInstagram, label: 'Instagram', href: '#' },
-  { Icon: FaXTwitter, label: 'X', href: '#' },
-  { Icon: FaYoutube, label: 'YouTube', href: '#' },
-  { Icon: FaTiktok, label: 'TikTok', href: '#' },
+  { Icon: FaFacebookF, label: 'Facebook', href: 'https://facebook.com/pusula24de' },
+  { Icon: FaInstagram, label: 'Instagram', href: 'https://instagram.com/pusula24de' },
+  { Icon: FaXTwitter, label: 'X', href: 'https://x.com/pusula24de' },
+  { Icon: FaYoutube, label: 'YouTube', href: 'https://www.youtube.com/channel/UCT9mC98WdJMWdpTZefDegkQ' },
+  { Icon: FaTiktok, label: 'TikTok', href: 'https://tiktok.com/@pusula24de' },
 ]
 
 export default function Header({ kategoriler }) {
@@ -33,6 +33,8 @@ export default function Header({ kategoriler }) {
                 <a
                   key={label}
                   href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition hover:bg-red-600 hover:text-white"
                 >
@@ -107,6 +109,8 @@ export default function Header({ kategoriler }) {
               <a
                 key={label}
                 href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label={label}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition hover:bg-red-600 hover:text-white"
               >

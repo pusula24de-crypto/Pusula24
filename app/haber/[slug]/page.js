@@ -67,6 +67,13 @@ export default async function HaberDetay({ params }) {
         '@type': 'ImageObject',
         url: `${SITE_URL}/marka/logo-yatay-renkli.png`,
       },
+      sameAs: [
+        'https://facebook.com/pusula24de',
+        'https://instagram.com/pusula24de',
+        'https://x.com/pusula24de',
+        'https://www.youtube.com/channel/UCT9mC98WdJMWdpTZefDegkQ',
+        'https://tiktok.com/@pusula24de',
+      ],
     },
   }
 

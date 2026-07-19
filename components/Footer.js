@@ -3,11 +3,11 @@ import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube, FaTiktok } from 'react
 import Pusula24Logo from './Pusula24Logo'
 
 const SOSYAL_LINKLER = [
-  { Icon: FaFacebookF, label: 'Facebook', href: '#' },
-  { Icon: FaInstagram, label: 'Instagram', href: '#' },
-  { Icon: FaXTwitter, label: 'X', href: '#' },
-  { Icon: FaYoutube, label: 'YouTube', href: '#' },
-  { Icon: FaTiktok, label: 'TikTok', href: '#' },
+  { Icon: FaFacebookF, label: 'Facebook', href: 'https://facebook.com/pusula24de' },
+  { Icon: FaInstagram, label: 'Instagram', href: 'https://instagram.com/pusula24de' },
+  { Icon: FaXTwitter, label: 'X', href: 'https://x.com/pusula24de' },
+  { Icon: FaYoutube, label: 'YouTube', href: 'https://www.youtube.com/channel/UCT9mC98WdJMWdpTZefDegkQ' },
+  { Icon: FaTiktok, label: 'TikTok', href: 'https://tiktok.com/@pusula24de' },
 ]
 
 export default function Footer({ kategoriler }) {
@@ -26,6 +26,8 @@ export default function Footer({ kategoriler }) {
               <a
                 key={label}
                 href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label={label}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 transition hover:bg-red-600 hover:text-white"
               >
