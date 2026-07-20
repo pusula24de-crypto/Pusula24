@@ -27,12 +27,22 @@ export async function haberKaydet(formData) {
   const kaynak_adi = formData.get('kaynak_adi')?.trim() || null
   const kaynak_url = formData.get('kaynak_url')?.trim() || null
   const seo_etiketleri = formData.get('seo_etiketleri')?.trim() || null
+  const gorsel_kaynak_notu = formData.get('gorsel_kaynak_notu')?.trim() || null
   const yayin_zamani = formData.get('yayin_zamani')
 
   // Zamanlanmış yayın: ileri bir tarih/saat seçildiyse haber otomatik
   // 'published' olur ama yayin_tarihi o gelecek zamana ayarlanır. Site
   // sorguları yayin_tarihi <= şimdi filtresi uyguladığı için haber, saati
   // gelene kadar hiçbir yerde görünmez.
+  //
+  // ÖNEMLİ: yayin_zamani formdan ZATEN UTC ISO string olarak gelir (admin
+  // sayfası tarayıcıda new Date(...).toISOString() ile çeviriyor). Burada
+  // ham datetime-local string'i (saat dilimi bilgisi taşımayan "YYYY-MM-
+  // DDTHH:mm" formatı) new Date() ile parse ETMEYİN — sunucu (Vercel/Node,
+  // genelde UTC) bunu KENDİ saat dilimiyle yorumlar, tarayıcının yerel saat
+  // diliminden farklıysa (örn. CEST = UTC+2) saat kayması oluşur. Haberi
+  // hiç değiştirmeden yeniden kaydetmek bile yayin_tarihi'ni ileri kaydırıp
+  // haberi (henüz gelmemiş bir gelecek zamanla) fiilen görünmez yapardı.
   let durumSon = durum
   let yayin_tarihi
   if (yayin_zamani) {
@@ -56,6 +66,7 @@ export async function haberKaydet(formData) {
     kaynak_adi,
     kaynak_url,
     seo_etiketleri,
+    gorsel_kaynak_notu,
     yazar_id: user.id,
     yayin_tarihi,
   }
@@ -92,7 +103,7 @@ export async function haberSil(id, slug) {
   return { success: true }
 }
 
-export async function kategoriEkle(ad, slug, gorsel_url) {
+export async function kategoriEkle(ad, slug, gorsel_url, gorsel_kaynak_notu) {
   await yetkiKontrolu()
   const supabase = await createClient()
 
@@ -101,20 +112,29 @@ export async function kategoriEkle(ad, slug, gorsel_url) {
 
   const { error } = await supabase
     .from('kategoriler')
-    .insert([{ ad, slug, sira: maxSira + 1, gorsel_url: gorsel_url || null }])
+    .insert([{
+      ad,
+      slug,
+      sira: maxSira + 1,
+      gorsel_url: gorsel_url || null,
+      gorsel_kaynak_notu: gorsel_kaynak_notu?.trim() || null,
+    }])
   if (error) return { success: false, error: error.message }
 
   revalidatePath('/')
   return { success: true }
 }
 
-export async function kategoriGorselGuncelle(id, gorsel_url) {
+export async function kategoriGorselGuncelle(id, gorsel_url, gorsel_kaynak_notu) {
   await yetkiKontrolu()
   const supabase = await createClient()
 
   const { error } = await supabase
     .from('kategoriler')
-    .update({ gorsel_url: gorsel_url || null })
+    .update({
+      gorsel_url: gorsel_url || null,
+      gorsel_kaynak_notu: gorsel_kaynak_notu?.trim() || null,
+    })
     .eq('id', id)
   if (error) return { success: false, error: error.message }
 

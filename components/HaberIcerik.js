@@ -58,10 +58,16 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
               className="h-full w-full object-cover"
             />
           </div>
-          {haber.ai_gorsel_mi && (
+          {haber.ai_gorsel_mi ? (
             <figcaption className="mt-2 text-center text-xs italic text-neutral-500">
               Görsel: KI-generiert · Symbolbild — yapay zekâ ile üretilmiş temsili görsel
             </figcaption>
+          ) : (
+            haber.gorsel_kaynak_notu && (
+              <figcaption className="mt-2 text-center text-xs italic text-neutral-500">
+                Fotoğraf: {haber.gorsel_kaynak_notu}
+              </figcaption>
+            )
           )}
         </figure>
       )}

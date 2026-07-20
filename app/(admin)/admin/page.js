@@ -58,6 +58,7 @@ async function dosyaYukle(supabase, dosya, onEk = '') {
 
 function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onSil, onGorselKaydet }) {
   const [gorselUrl, setGorselUrl] = useState(kategori.gorsel_url || '')
+  const [gorselKaynakNotu, setGorselKaynakNotu] = useState(kategori.gorsel_kaynak_notu || '')
   const [yukleniyor, setYukleniyor] = useState(false)
   const [hata, setHata] = useState('')
   const [kaydediliyor, setKaydediliyor] = useState(false)
@@ -85,7 +86,7 @@ function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onS
 
   const handleKaydet = async () => {
     setKaydediliyor(true)
-    await onGorselKaydet(kategori.id, gorselUrl)
+    await onGorselKaydet(kategori.id, gorselUrl, gorselKaynakNotu)
     setKaydediliyor(false)
   }
 
@@ -153,6 +154,15 @@ function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onS
         </p>
       )}
       {hata && <p className="pl-[52px] text-xs text-red-400">{hata}</p>}
+      <div className="pl-[52px]">
+        <input
+          type="text"
+          placeholder="Görsel Kaynağı (opsiyonel, örn. Polizei Duisburg)"
+          value={gorselKaynakNotu}
+          onChange={(e) => setGorselKaynakNotu(e.target.value)}
+          className="w-full bg-gray-950 border border-gray-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-red-600"
+        />
+      </div>
     </li>
   )
 }
@@ -176,6 +186,7 @@ export default function AdminPortal() {
   const [gorselYuklemeHatasi, setGorselYuklemeHatasi] = useState('')
   const [gorselBoyutBilgisi, setGorselBoyutBilgisi] = useState(null)
   const [aiGorsel, setAiGorsel] = useState(true)
+  const [gorselKaynakNotu, setGorselKaynakNotu] = useState('')
   const [durum, setDurum] = useState('draft')
   const [kaynakAdi, setKaynakAdi] = useState('')
   const [kaynakUrl, setKaynakUrl] = useState('')
@@ -188,6 +199,7 @@ export default function AdminPortal() {
   const [yeniKatGorselYukleniyor, setYeniKatGorselYukleniyor] = useState(false)
   const [yeniKatGorselHata, setYeniKatGorselHata] = useState('')
   const [yeniKatGorselBoyutBilgisi, setYeniKatGorselBoyutBilgisi] = useState(null)
+  const [yeniKatGorselKaynakNotu, setYeniKatGorselKaynakNotu] = useState('')
 
   const [googleDogrulama, setGoogleDogrulama] = useState('')
   const [adsenseKodu, setAdsenseKodu] = useState('')
@@ -259,7 +271,14 @@ export default function AdminPortal() {
     formData.append('kaynak_adi', kaynakAdi)
     formData.append('kaynak_url', kaynakUrl)
     formData.append('seo_etiketleri', seoEtiketleri)
-    formData.append('yayin_zamani', yayinZamani)
+    formData.append('gorsel_kaynak_notu', gorselKaynakNotu)
+    // datetime-local değeri tarayıcının YEREL saatini temsil eder (saat
+    // dilimi bilgisi taşımaz). Bunu burada, tarayıcıda UTC ISO'ya çeviriyoruz.
+    // Sunucuda (Vercel/Node, genelde UTC) aynı ham string yeniden
+    // yorumlanırsa saat dilimi farkı kadar kayma oluşur (örn. CEST'te
+    // dokunulmadan kaydedilen bir haberin yayın saati +2 saat ileri atardı).
+    const yayinZamaniISO = yayinZamani ? new Date(yayinZamani).toISOString() : ''
+    formData.append('yayin_zamani', yayinZamaniISO)
 
     const response = await haberKaydet(formData)
     setLoading(false)
@@ -327,6 +346,7 @@ export default function AdminPortal() {
     setKategoriId(h.kategori_id || '')
     setGorselUrl(h.gorsel_url || '')
     setAiGorsel(h.ai_gorsel_mi)
+    setGorselKaynakNotu(h.gorsel_kaynak_notu || '')
     setDurum(h.durum)
     setKaynakAdi(h.kaynak_adi || '')
     setKaynakUrl(h.kaynak_url || '')
@@ -348,11 +368,12 @@ export default function AdminPortal() {
 
   const handleKategoriEkle = async (e) => {
     e.preventDefault()
-    const res = await kategoriEkle(yeniKatAd, yeniKatSlug, yeniKatGorselUrl)
+    const res = await kategoriEkle(yeniKatAd, yeniKatSlug, yeniKatGorselUrl, yeniKatGorselKaynakNotu)
     if (res.success) {
       setYeniKatAd('')
       setYeniKatSlug('')
       setYeniKatGorselUrl('')
+      setYeniKatGorselKaynakNotu('')
       setYeniKatGorselBoyutBilgisi(null)
       veriYukle()
       setMesaj({ tip: 'success', icerik: 'Kategori başarıyla eklendi!' })
@@ -361,8 +382,8 @@ export default function AdminPortal() {
     }
   }
 
-  const handleKategoriGorselKaydet = async (id, gorselUrl) => {
-    const res = await kategoriGorselGuncelle(id, gorselUrl)
+  const handleKategoriGorselKaydet = async (id, gorselUrl, gorselKaynakNotu) => {
+    const res = await kategoriGorselGuncelle(id, gorselUrl, gorselKaynakNotu)
     if (res.success) {
       veriYukle()
       setMesaj({ tip: 'success', icerik: 'Kategori görseli güncellendi!' })
@@ -401,6 +422,7 @@ export default function AdminPortal() {
     setKategoriId('')
     setGorselUrl('')
     setAiGorsel(true)
+    setGorselKaynakNotu('')
     setDurum('draft')
     setKaynakAdi('')
     setKaynakUrl('')
@@ -494,6 +516,19 @@ export default function AdminPortal() {
                 <div className="flex items-center space-x-2 bg-gray-950 p-3 rounded border border-gray-800">
                   <input type="checkbox" id="aiGorsel" checked={aiGorsel} onChange={(e) => setAiGorsel(e.target.checked)} className="h-4 w-4 text-red-600 bg-gray-900 border-gray-800 rounded focus:ring-0" />
                   <label htmlFor="aiGorsel" className="text-sm cursor-pointer select-none">Bu görsel Yapay Zekâ ile üretildi (Sitede Symbolbild rozeti basar).</label>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Görsel Kaynağı (harici/telifli görsellerde doldurun, opsiyonel)</label>
+                  <input
+                    type="text"
+                    placeholder="Wikimedia Commons / Jane Doe, CC BY 4.0"
+                    value={gorselKaynakNotu}
+                    onChange={(e) => setGorselKaynakNotu(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Görsel YZ ile üretilmediyse ve buraya bir kaynak yazarsanız, haber detayında görselin altında &quot;Fotoğraf: ...&quot; olarak görünür.
+                  </p>
                 </div>
               </div>
 
@@ -655,6 +690,16 @@ export default function AdminPortal() {
                 {yeniKatGorselUrl && !yeniKatGorselYukleniyor && (
                   <img src={yeniKatGorselUrl} alt="Önizleme" className="mt-2 h-24 w-full rounded object-cover border border-gray-800" />
                 )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Görsel Kaynağı (opsiyonel)</label>
+                <input
+                  type="text"
+                  placeholder="Örn: Polizei Duisburg"
+                  value={yeniKatGorselKaynakNotu}
+                  onChange={(e) => setYeniKatGorselKaynakNotu(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600"
+                />
               </div>
               <button type="submit" className="w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium transition">Kategori Ekle</button>
             </form>

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 
 const HABER_ALANLARI =
-  'id, baslik, ozet, slug, govde, gorsel_url, ai_gorsel_mi, yayin_tarihi, kaynak_adi, kaynak_url, kategori_id, kategoriler(ad, slug)'
+  'id, baslik, ozet, slug, govde, gorsel_url, ai_gorsel_mi, gorsel_kaynak_notu, yayin_tarihi, kaynak_adi, kaynak_url, kategori_id, kategoriler(ad, slug)'
 
 // Sıradaki (daha eski) yayınlanmış haberi döndürür. Öncelik: aynı kategorideki
 // bir önceki haber; kategori tükenirse genel akıştan devam. Zaten gösterilen

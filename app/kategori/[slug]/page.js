@@ -27,7 +27,7 @@ async function kategoriGetir(slug) {
   const supabase = await createClient()
   const { data: kategori, error } = await supabase
     .from('kategoriler')
-    .select('id, ad, slug, gorsel_url')
+    .select('id, ad, slug, gorsel_url, gorsel_kaynak_notu')
     .eq('slug', slug)
     .single()
 
@@ -77,7 +77,7 @@ export default async function KategoriSayfasi({ params }) {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="relative mb-8 flex h-48 items-end overflow-hidden rounded-lg md:h-64">
+      <div className={`relative flex h-48 items-end overflow-hidden rounded-lg md:h-64 ${kategori.gorsel_kaynak_notu ? 'mb-2' : 'mb-8'}`}>
         <img
           src={kategori.gorsel_url || kategoriGorseliGetir(kategori.slug)}
           alt=""
@@ -89,6 +89,11 @@ export default async function KategoriSayfasi({ params }) {
           {kategori.ad}
         </h1>
       </div>
+      {kategori.gorsel_kaynak_notu && (
+        <p className="mb-8 text-xs italic text-neutral-500">
+          Fotoğraf: {kategori.gorsel_kaynak_notu}
+        </p>
+      )}
 
       {haberler && haberler.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
