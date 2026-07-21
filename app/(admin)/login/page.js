@@ -32,12 +32,27 @@ export default function Login() {
       }
 
       // Kimlik doğrulama başarılı olsa bile, oturumun ÇEREZE GERÇEKTEN
-      // yazıldığını doğrula. Bazı kısıtlı/şirket tarayıcılarında (gizlilik
-      // modu, üçüncü taraf çerez engelleme, DLP yazılımları) çerez yazma
-      // sessizce başarısız olabilir; bu durumda kullanıcı /admin'e
-      // yönlendirilir ama proxy.js oturumu bulamayıp onu tekrar /login'e
-      // atar — hiçbir hata mesajı görmeden. Taze (singleton olmayan) bir
-      // istemciyle storage'dan okuyarak bunu burada, önceden tespit ediyoruz.
+      // yazıldığını doğrula. Bu istemci client-side'dır (bu dosya 'use
+      // client' + tarayıcı Supabase client'ı kullanır — signInWithPassword
+      // doğrudan tarayıcıdan Supabase'in kendi auth API'sine gider, bizim
+      // sunucumuza hiç uğramaz). @supabase/ssr, dönen oturumu HTTP Set-
+      // Cookie başlığıyla DEĞİL, document.cookie üzerinden JS ile yazar —
+      // yani ağ katmanındaki bir cihaz bu yazmayı göremez/silemez, çünkü
+      // hiçbir zaman bir response header olarak seyahat etmiyor. Yine de
+      // tarayıcı düzeyinde çerezler tamamen kapalıysa (gizlilik modu,
+      // kurum politikası, DLP yazılımı) bu JS yazma işlemi de sessizce
+      // başarısız olabilir; bunu burada, önceden tespit ediyoruz. Taze
+      // (singleton olmayan) bir istemciyle storage'dan okuyarak doğruluyoruz.
+      if (typeof navigator !== 'undefined' && navigator.cookieEnabled === false) {
+        setHata(
+          'Tarayıcınızda çerezler tamamen devre dışı bırakılmış. Oturumun ' +
+          'saklanabilmesi için çerezlere izin vermeniz gerekiyor (tarayıcı ' +
+          'ayarları veya kurum/şirket politikaları).'
+        )
+        setLoading(false)
+        return
+      }
+
       const dogrulamaClient = createDogrulamaClient()
       const { data: { session: yazilanOturum } } = await dogrulamaClient.auth.getSession()
 
