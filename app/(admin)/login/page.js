@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, createDogrulamaClient } from '@/lib/supabase/client'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -28,10 +28,32 @@ export default function Login() {
         // ARTIK GENEL MESAJ DEĞİL, SUPABASE'DEN GELEN GERÇEK HATAYI YAZIYORUZ:
         setHata(`Supabase Hatası: ${error.message} (Kod: ${error.status || 'Bilinmiyor'})`)
         setLoading(false)
-      } else {
-        router.push('/admin')
-        router.refresh()
+        return
       }
+
+      // Kimlik doğrulama başarılı olsa bile, oturumun ÇEREZE GERÇEKTEN
+      // yazıldığını doğrula. Bazı kısıtlı/şirket tarayıcılarında (gizlilik
+      // modu, üçüncü taraf çerez engelleme, DLP yazılımları) çerez yazma
+      // sessizce başarısız olabilir; bu durumda kullanıcı /admin'e
+      // yönlendirilir ama proxy.js oturumu bulamayıp onu tekrar /login'e
+      // atar — hiçbir hata mesajı görmeden. Taze (singleton olmayan) bir
+      // istemciyle storage'dan okuyarak bunu burada, önceden tespit ediyoruz.
+      const dogrulamaClient = createDogrulamaClient()
+      const { data: { session: yazilanOturum } } = await dogrulamaClient.auth.getSession()
+
+      if (!yazilanOturum) {
+        setHata(
+          'Giriş bilgileri doğru, ancak oturum tarayıcınızda saklanamadı. ' +
+          'Tarayıcınızın çerez/site verisi ayarlarını (gizlilik modu, üçüncü ' +
+          'taraf çerez engelleme veya şirket/kurum politikaları) kontrol edip ' +
+          'tekrar deneyin.'
+        )
+        setLoading(false)
+        return
+      }
+
+      router.push('/admin')
+      router.refresh()
     } catch (catchedError) {
       setHata(`Bağlantı Hatası: ${catchedError.message}`)
       setLoading(false)
