@@ -181,6 +181,7 @@ export default function AdminPortal() {
   const [ozet, setOzet] = useState('')
   const [govde, setGovde] = useState('')
   const [kategoriId, setKategoriId] = useState('')
+  const [ekKategoriIdler, setEkKategoriIdler] = useState([])
   const [gorselUrl, setGorselUrl] = useState('')
   const [gorselYukleniyor, setGorselYukleniyor] = useState(false)
   const [gorselYuklemeHatasi, setGorselYuklemeHatasi] = useState('')
@@ -265,6 +266,12 @@ export default function AdminPortal() {
     formData.append('ozet', ozet)
     formData.append('govde', govde)
     formData.append('kategori_id', kategoriId)
+    // Ana Kategori ile mükerrer olmasın diye burada da süzülüyor (asıl
+    // güvence sunucu tarafında, actions.js'te).
+    formData.append(
+      'ek_kategori_id_listesi',
+      ekKategoriIdler.filter((kid) => String(kid) !== String(kategoriId)).join(',')
+    )
     formData.append('gorsel_url', gorselUrl)
     formData.append('ai_gorsel_mi', aiGorsel.toString())
     formData.append('durum', durum)
@@ -336,7 +343,7 @@ export default function AdminPortal() {
     }
   }
 
-  const handleHaberDuzenle = (h) => {
+  const handleHaberDuzenle = async (h) => {
     setSecilenHaber(h)
     setBaslik(h.baslik)
     setSlug(h.slug)
@@ -353,6 +360,15 @@ export default function AdminPortal() {
     setSeoEtiketleri(h.seo_etiketleri || '')
     setYayinZamani(h.durum === 'published' ? isoToDatetimeLocal(h.yayin_tarihi) : '')
     setGorselBoyutBilgisi(null)
+
+    // Ek kategoriler haberler tablosunda değil, ayrı ilişki tablosunda
+    // (haber_kategorileri) tutuluyor — düzenleme açılırken ayrıca çekilir.
+    const { data: ekKategoriSatirlari } = await supabase
+      .from('haber_kategorileri')
+      .select('kategori_id')
+      .eq('haber_id', h.id)
+    setEkKategoriIdler((ekKategoriSatirlari || []).map((s) => s.kategori_id))
+
     setActiveTab('haber-ekle')
   }
 
@@ -420,6 +436,7 @@ export default function AdminPortal() {
     setOzet('')
     setGovde('')
     setKategoriId('')
+    setEkKategoriIdler([])
     setGorselUrl('')
     setAiGorsel(true)
     setGorselKaynakNotu('')
@@ -485,11 +502,51 @@ export default function AdminPortal() {
                   <p className="text-xs text-gray-500 mt-1">Önizleme: https://www.pusula24.de/haber/<span className="text-red-400">{slug}</span></p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Kategori</label>
-                  <select required value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600">
+                  <label className="block text-sm font-medium mb-1">Ana Kategori</label>
+                  <select
+                    required
+                    value={kategoriId}
+                    onChange={(e) => {
+                      setKategoriId(e.target.value)
+                      // Ana Kategori olarak seçilen, Ek Kategoriler'de mükerrer
+                      // kalmasın diye oradan otomatik çıkarılır.
+                      setEkKategoriIdler((onceki) => onceki.filter((kid) => String(kid) !== e.target.value))
+                    }}
+                    className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600"
+                  >
                     <option value="">Kategori Seçin...</option>
                     {kategoriler.map(k => <option key={k.id} value={k.id}>{k.ad}</option>)}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ek Kategoriler (opsiyonel)</label>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded border border-gray-800 bg-gray-950 p-3">
+                    {kategoriler
+                      .filter((k) => String(k.id) !== String(kategoriId))
+                      .map((k) => (
+                        <label key={k.id} className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={ekKategoriIdler.some((kid) => String(kid) === String(k.id))}
+                            onChange={(e) => {
+                              setEkKategoriIdler((onceki) =>
+                                e.target.checked
+                                  ? [...onceki, k.id]
+                                  : onceki.filter((kid) => String(kid) !== String(k.id))
+                              )
+                            }}
+                            className="h-4 w-4 text-red-600 bg-gray-900 border-gray-800 rounded focus:ring-0"
+                          />
+                          {k.ad}
+                        </label>
+                      ))}
+                    {kategoriler.length <= 1 && (
+                      <p className="col-span-2 text-xs text-gray-500">Seçilebilecek başka kategori yok.</p>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    İşaretlenen kategorilerin sayfasında bu haber de listelenir; anasayfa blokları ve rozet yalnızca Ana Kategori&apos;yi baz alır.
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Görsel URL (Gemini/Unsplash vb.)</label>

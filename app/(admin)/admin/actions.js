@@ -30,6 +30,15 @@ export async function haberKaydet(formData) {
   const gorsel_kaynak_notu = formData.get('gorsel_kaynak_notu')?.trim() || null
   const yayin_zamani = formData.get('yayin_zamani')
 
+  // Ek kategoriler: virgülle ayrılmış id listesi. Ana Kategori'yle mükerrer
+  // olmasın diye burada da (form tarafındaki filtrelemeye ek olarak) süzülür.
+  const anaKategoriId = kategori_id ? parseInt(kategori_id) : null
+  const ekKategoriIdler = (formData.get('ek_kategori_id_listesi') || '')
+    .split(',')
+    .map((s) => parseInt(s, 10))
+    .filter((n) => Number.isInteger(n) && n !== anaKategoriId)
+  const ekKategoriIdlerTekil = [...new Set(ekKategoriIdler)]
+
   // Zamanlanmış yayın: ileri bir tarih/saat seçildiyse haber otomatik
   // 'published' olur ama yayin_tarihi o gelecek zamana ayarlanır. Site
   // sorguları yayin_tarihi <= şimdi filtresi uyguladığı için haber, saati
@@ -72,12 +81,14 @@ export async function haberKaydet(formData) {
   }
 
   let dbError
+  let haberId = id ? parseInt(id) : null
   if (id) {
     const { error } = await supabase.from('haberler').update(veri).eq('id', id)
     dbError = error
   } else {
-    const { error } = await supabase.from('haberler').insert([veri])
+    const { data, error } = await supabase.from('haberler').insert([veri]).select('id').single()
     dbError = error
+    haberId = data?.id ?? null
   }
 
   if (dbError) {
@@ -85,8 +96,29 @@ export async function haberKaydet(formData) {
     return { success: false, error: dbError.message }
   }
 
+  // Ek kategoriler: en temizi — önce bu habere ait eski kayıtları sil,
+  // sonra (varsa) yeni seçilenleri ekle. Ana Kategori'ye (haberler.
+  // kategori_id) dokunulmaz, o ayrı ve zorunlu alan olarak kalır.
+  if (haberId) {
+    const { error: silmeHatasi } = await supabase
+      .from('haber_kategorileri')
+      .delete()
+      .eq('haber_id', haberId)
+
+    if (silmeHatasi) return { success: false, error: 'Ek kategoriler güncellenemedi: ' + silmeHatasi.message }
+
+    if (ekKategoriIdlerTekil.length > 0) {
+      const { error: eklemeHatasi } = await supabase
+        .from('haber_kategorileri')
+        .insert(ekKategoriIdlerTekil.map((kid) => ({ haber_id: haberId, kategori_id: kid })))
+
+      if (eklemeHatasi) return { success: false, error: 'Ek kategoriler kaydedilemedi: ' + eklemeHatasi.message }
+    }
+  }
+
   revalidatePath('/')
   revalidatePath(`/haber/${slug}`)
+  revalidatePath('/kategori/[slug]', 'page')
 
   return { success: true }
 }

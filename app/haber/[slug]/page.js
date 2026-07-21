@@ -27,6 +27,17 @@ async function haberGetir(slug) {
     .eq('durum', 'published')
     .lte('yayin_tarihi', new Date().toISOString())
     .single()
+
+  if (!haber) return haber
+
+  // Ek kategoriler (opsiyonel, sade rozet için) — ayrı ilişki tablosundan.
+  const { data: ekKategoriSatirlari } = await supabase
+    .from('haber_kategorileri')
+    .select('kategoriler(ad, slug)')
+    .eq('haber_id', haber.id)
+
+  haber.ek_kategoriler = (ekKategoriSatirlari || []).map((s) => s.kategoriler).filter(Boolean)
+
   return haber
 }
 

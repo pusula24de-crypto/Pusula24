@@ -64,5 +64,14 @@ export async function GET(request) {
     siradaki = data?.[0] || null
   }
 
+  // Ek kategoriler (opsiyonel, sade rozet için) — ana sayfa render'ıyla tutarlı olsun diye.
+  if (siradaki) {
+    const { data: ekKategoriSatirlari } = await supabase
+      .from('haber_kategorileri')
+      .select('kategoriler(ad, slug)')
+      .eq('haber_id', siradaki.id)
+    siradaki.ek_kategoriler = (ekKategoriSatirlari || []).map((s) => s.kategoriler).filter(Boolean)
+  }
+
   return NextResponse.json({ haber: siradaki })
 }

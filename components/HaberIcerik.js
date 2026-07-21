@@ -29,9 +29,16 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
       </nav>
 
       <div className="space-y-4">
-        <span className="inline-block text-xs font-bold uppercase tracking-wide text-red-600">
-          {haber.kategoriler?.ad || 'Gündem'}
-        </span>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="inline-block text-xs font-bold uppercase tracking-wide text-red-600">
+            {haber.kategoriler?.ad || 'Gündem'}
+          </span>
+          {haber.ek_kategoriler && haber.ek_kategoriler.length > 0 && (
+            <span className="text-xs text-neutral-400">
+              + {haber.ek_kategoriler.map((k) => k.ad).join(', ')}
+            </span>
+          )}
+        </div>
         <h1 className="font-heading text-4xl font-black leading-tight text-neutral-900 md:text-5xl">
           {haber.baslik}
         </h1>

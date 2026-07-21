@@ -66,14 +66,46 @@ export default async function KategoriSayfasi({ params }) {
 
   const supabase = await createClient()
   const simdi = new Date().toISOString()
-  const { data: haberler } = await supabase
-    .from('haberler')
-    .select('id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad, slug)')
-    .eq('durum', 'published')
-    .lte('yayin_tarihi', simdi)
-    .eq('kategori_id', kategori.id)
-    .order('yayin_tarihi', { ascending: false })
-    .limit(60)
+  const HABER_ALANLARI = 'id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad, slug)'
+
+  // Bu kategori sayfası iki kaynaktan gelen haberleri BİRLEŞTİRİR (UNION):
+  // 1) Ana Kategorisi bu kategori olan haberler (haberler.kategori_id).
+  // 2) Ek Kategori olarak bu kategoriye bağlanmış haberler (haber_kategorileri
+  //    ilişki tablosu). "!inner" join ipucu, durum/yayin_tarihi filtrelerinin
+  //    ilişkili haberler tablosuna da (yalnızca ilişki tablosuna değil)
+  //    uygulanmasını sağlar.
+  const [{ data: anaKategoriHaberleri }, { data: ekKategoriSatirlari }] = await Promise.all([
+    supabase
+      .from('haberler')
+      .select(HABER_ALANLARI)
+      .eq('durum', 'published')
+      .lte('yayin_tarihi', simdi)
+      .eq('kategori_id', kategori.id)
+      .order('yayin_tarihi', { ascending: false })
+      .limit(60),
+    supabase
+      .from('haber_kategorileri')
+      .select(`haberler!inner(${HABER_ALANLARI})`)
+      .eq('kategori_id', kategori.id)
+      .eq('haberler.durum', 'published')
+      .lte('haberler.yayin_tarihi', simdi)
+      .order('yayin_tarihi', { referencedTable: 'haberler', ascending: false })
+      .limit(60),
+  ])
+
+  const ekKategoriHaberleri = (ekKategoriSatirlari || [])
+    .map((satir) => satir.haberler)
+    .filter(Boolean)
+
+  const gorulenIdler = new Set()
+  const haberler = [...(anaKategoriHaberleri || []), ...ekKategoriHaberleri]
+    .filter((h) => {
+      if (gorulenIdler.has(h.id)) return false
+      gorulenIdler.add(h.id)
+      return true
+    })
+    .sort((a, b) => new Date(b.yayin_tarihi) - new Date(a.yayin_tarihi))
+    .slice(0, 60)
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
