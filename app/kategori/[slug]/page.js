@@ -66,7 +66,7 @@ export default async function KategoriSayfasi({ params }) {
 
   const supabase = await createClient()
   const simdi = new Date().toISOString()
-  const HABER_ALANLARI = 'id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad, slug)'
+  const HABER_ALANLARI = 'id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler!haberler_kategori_id_fkey(ad, slug)'
 
   // Bu kategori sayfası iki kaynaktan gelen haberleri BİRLEŞTİRİR (UNION):
   // 1) Ana Kategorisi bu kategori olan haberler (haberler.kategori_id).

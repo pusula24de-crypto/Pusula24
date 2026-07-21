@@ -22,7 +22,7 @@ async function haberGetir(slug) {
   const supabase = await createClient()
   const { data: haber } = await supabase
     .from('haberler')
-    .select('*, kategoriler(ad, slug)')
+    .select('*, kategoriler!haberler_kategori_id_fkey(ad, slug)')
     .eq('slug', slug)
     .eq('durum', 'published')
     .lte('yayin_tarihi', new Date().toISOString())

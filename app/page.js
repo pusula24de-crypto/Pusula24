@@ -23,7 +23,7 @@ export default async function Anasayfa() {
   // haberler yayin_tarihi <= şimdi filtresiyle saati gelene kadar görünmez.
   const { data: sonHaberler } = await supabase
     .from('haberler')
-    .select('id, baslik, ozet, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad, slug)')
+    .select('id, baslik, ozet, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler!haberler_kategori_id_fkey(ad, slug)')
     .eq('durum', 'published')
     .lte('yayin_tarihi', simdi)
     .order('yayin_tarihi', { ascending: false })
@@ -34,7 +34,7 @@ export default async function Anasayfa() {
 
   const { data: cokOkunanlar } = await supabase
     .from('haberler')
-    .select('id, baslik, slug, gorsel_url, kategoriler(ad, slug)')
+    .select('id, baslik, slug, gorsel_url, kategoriler!haberler_kategori_id_fkey(ad, slug)')
     .eq('durum', 'published')
     .lte('yayin_tarihi', simdi)
     .order('okuma_sayisi', { ascending: false })
@@ -46,7 +46,7 @@ export default async function Anasayfa() {
         kategoriler.map(async (kategori) => {
           const { data } = await supabase
             .from('haberler')
-            .select('id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad, slug)')
+            .select('id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler!haberler_kategori_id_fkey(ad, slug)')
             .eq('durum', 'published')
             .lte('yayin_tarihi', simdi)
             .eq('kategori_id', kategori.id)

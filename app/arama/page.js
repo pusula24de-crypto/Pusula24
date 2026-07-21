@@ -36,7 +36,7 @@ export default async function AramaSayfasi({ searchParams }) {
     // benzeri bir sorguya geçilebilir (daha alakalı sıralama, eş anlamlı kök eşleşmesi).
     const { data } = await supabase
       .from('haberler')
-      .select('id, baslik, ozet, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad, slug)')
+      .select('id, baslik, ozet, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler!haberler_kategori_id_fkey(ad, slug)')
       .eq('durum', 'published')
       .lte('yayin_tarihi', simdi)
       .or(`baslik.ilike.%${temizQ}%,ozet.ilike.%${temizQ}%`)

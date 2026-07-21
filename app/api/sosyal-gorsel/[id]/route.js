@@ -84,7 +84,7 @@ export async function GET(request, { params }) {
   const supabase = await createClient()
   const { data: haber, error } = await supabase
     .from('haberler')
-    .select('id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler(ad)')
+    .select('id, baslik, slug, gorsel_url, ai_gorsel_mi, yayin_tarihi, kategoriler!haberler_kategori_id_fkey(ad)')
     .eq('id', id)
     .single()
 

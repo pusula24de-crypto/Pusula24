@@ -220,7 +220,7 @@ export default function AdminPortal() {
 
     const { data: habData } = await supabase
       .from('haberler')
-      .select('*, kategoriler(ad)')
+      .select('*, kategoriler!haberler_kategori_id_fkey(ad)')
       .order('created_at', { ascending: false })
       .limit(50)
     if (habData) setHaberler(habData)
