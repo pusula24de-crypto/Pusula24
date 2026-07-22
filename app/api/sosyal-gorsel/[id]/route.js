@@ -312,6 +312,11 @@ export async function GET(request, { params }) {
     const dosyaAdi = `${haber.slug}-sosyal${storyFormat ? '-story' : ''}.png`
     const headers = new Headers(gorsel.headers)
     headers.set('Content-Disposition', `attachment; filename="${dosyaAdi}"`)
+    // og:image/twitter:image artık bu route'a işaret ediyor; paylaşım
+    // botları (Facebook/WhatsApp/X/Telegram) link her paylaşıldığında bu
+    // görseli çeker. Haberin görseli/başlığı değişmediği sürece 24 saat
+    // CDN'de önbelleklensin ki her crawler isteğinde yeniden hesaplanmasın.
+    headers.set('Cache-Control', 'public, max-age=3600, s-maxage=86400')
 
     return new Response(gorsel.body, { status: gorsel.status, headers })
   } catch (err) {

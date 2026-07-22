@@ -48,6 +48,11 @@ export async function generateMetadata({ params }) {
 
   const etiketler = etiketleriAyristir(haber.seo_etiketleri)
 
+  // og:image ve twitter:image, haberin ham fotoğrafı yerine markalı sosyal
+  // görsel motorunun ürettiği 1080x1350 PNG'ye işaret eder (manşet + logo +
+  // kategori çipi içerir, paylaşımlarda daha tanınır/tutarlı görünür).
+  const sosyalGorselUrl = `${SITE_URL}/api/sosyal-gorsel/${haber.id}`
+
   return {
     title: haber.baslik,
     description: haber.ozet,
@@ -61,7 +66,23 @@ export async function generateMetadata({ params }) {
       type: 'article',
       publishedTime: haber.yayin_tarihi,
       modifiedTime: haber.updated_at || haber.yayin_tarihi,
-      images: haber.gorsel_url ? [haber.gorsel_url] : [],
+      images: [
+        {
+          url: sosyalGorselUrl,
+          width: 1080,
+          height: 1350,
+          type: 'image/png',
+          alt: haber.baslik,
+        },
+      ],
+    },
+    // Kök layout'taki twitter bloğu (sabit logo) burada AÇIKÇA ezilir —
+    // aksi halde bu sayfa da o statik logoyu miras alırdı (asıl bug buydu).
+    twitter: {
+      card: 'summary_large_image',
+      title: haber.baslik,
+      description: haber.ozet,
+      images: [sosyalGorselUrl],
     },
   }
 }
