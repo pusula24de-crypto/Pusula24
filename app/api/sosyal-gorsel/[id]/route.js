@@ -32,19 +32,35 @@ async function gorselHazirla(url) {
 // Font dosyaları Google Fonts CDN'den (eski/legacy tarayıcı isteği ile)
 // latin-ext kapsayan tam TTF olarak indirilip assets/fonts/ altına konuldu.
 // ImageResponse (Satori) Google Fonts'u otomatik yüklemez, ArrayBuffer ister.
+//
+// PERFORMANS: Bu dosyalar hiç değişmiyor (deployment ile birlikte sabit) ama
+// eskiden HER istekte diskten yeniden okunuyordu. og:image/twitter:image bu
+// route'a işaret ettiğinden beri link paylaşım botları (Facebook/WhatsApp/X)
+// birkaç saniyelik dar bir zaman aşımıyla çalışıyor — gereksiz disk I/O'yu
+// tekrar tekrar yapmak yerine, modül seviyesinde (warm sunucusuz fonksiyon
+// çağrıları arasında paylaşılan) BİR KEZ okuyup cache'liyoruz.
+let fontCache = null
 async function fontlariYukle() {
-  const [black, regular] = await Promise.all([
-    readFile(join(process.cwd(), 'assets/fonts/Archivo-Black.ttf')),
-    readFile(join(process.cwd(), 'assets/fonts/Archivo-Regular.ttf')),
-  ])
-  return { black, regular }
+  if (!fontCache) {
+    fontCache = Promise.all([
+      readFile(join(process.cwd(), 'assets/fonts/Archivo-Black.ttf')),
+      readFile(join(process.cwd(), 'assets/fonts/Archivo-Regular.ttf')),
+    ]).then(([black, regular]) => ({ black, regular }))
+  }
+  return fontCache
 }
 
 // Sol üst damga: Pusula24 beyaz amblemi (pusula sembolü). SVG metin içermediği
 // için Satori'de data URI olarak güvenle render edilir (font bağımsız).
+// Aynı gerekçeyle (bkz. fontlariYukle) modül seviyesinde cache'lenir.
+let logoCache = null
 async function logoYukle() {
-  const buffer = await readFile(join(process.cwd(), 'public/marka/sembol-beyaz.svg'))
-  return `data:image/svg+xml;base64,${buffer.toString('base64')}`
+  if (!logoCache) {
+    logoCache = readFile(join(process.cwd(), 'public/marka/sembol-beyaz.svg')).then(
+      (buffer) => `data:image/svg+xml;base64,${buffer.toString('base64')}`
+    )
+  }
+  return logoCache
 }
 
 function mansetBoyutuHesapla(baslik) {
@@ -81,6 +97,12 @@ export async function GET(request, { params }) {
     return new Response('Geçersiz haber id.', { status: 400 })
   }
 
+  // PERFORMANS: font/logo yükleme, haberin DB sorgusuyla aynı anda başlar —
+  // ikisi birbirinden bağımsız olduğu için art arda beklemenin anlamı yok.
+  // (Sıcak/warm çağrılarda fontCache/logoCache sayesinde bu zaten anlıktır.)
+  const fontPromise = fontlariYukle()
+  const logoPromise = logoYukle()
+
   const supabase = await createClient()
   const { data: haber, error } = await supabase
     .from('haberler')
@@ -111,17 +133,22 @@ export async function GET(request, { params }) {
   const kategoriAdi = haber.kategoriler?.ad || 'Gündem'
 
   try {
-    const [{ black, regular }, logoDataUri] = await Promise.all([fontlariYukle(), logoYukle()])
-
-    // Arka plan görseli hazırlığı ayrı bir try/catch'te: başarısız olursa
-    // (görsel indirilemez/dönüştürülemez) tüm üretim 500 ile çökmek yerine
-    // düz lacivert zemine düşer.
-    let arkaPlanDataUri = null
-    try {
-      arkaPlanDataUri = await gorselHazirla(haber.gorsel_url)
-    } catch (gorselHatasi) {
+    // PERFORMANS: font/logo (yukarıda zaten başlatılmıştı) VE arka plan
+    // görseli (fetch + sharp dönüşümü — muhtemelen en yavaş adım) burada
+    // ayrı ayrı beklenmek yerine BİRLİKTE, paralel bekleniyor. Görsel
+    // hazırlığı kendi .catch'iyle korunuyor: başarısız olursa (indirilemez/
+    // dönüştürülemez) tüm üretim 500 ile çökmek yerine düz lacivert zemine
+    // düşer, diğer ikisini (font/logo) etkilemez.
+    const gorselPromise = gorselHazirla(haber.gorsel_url).catch((gorselHatasi) => {
       console.error('[sosyal-gorsel] Arka plan görseli hazırlanamadı, düz zemine düşülüyor:', gorselHatasi)
-    }
+      return null
+    })
+
+    const [{ black, regular }, logoDataUri, arkaPlanDataUri] = await Promise.all([
+      fontPromise,
+      logoPromise,
+      gorselPromise,
+    ])
 
     const gorsel = new ImageResponse(
       (
