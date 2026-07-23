@@ -38,6 +38,15 @@ async function haberGetir(slug) {
 
   haber.ek_kategoriler = (ekKategoriSatirlari || []).map((s) => s.kategoriler).filter(Boolean)
 
+  // Galeri (opsiyonel, çoklu görsel) — ayrı bir tablodan sira sırasına göre.
+  const { data: galeriSatirlari } = await supabase
+    .from('haber_galeri')
+    .select('id, gorsel_url, ai_gorsel_mi, gorsel_kaynak_notu')
+    .eq('haber_id', haber.id)
+    .order('sira')
+
+  haber.galeri = galeriSatirlari || []
+
   return haber
 }
 

@@ -3,6 +3,7 @@ import Markdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
 import { formatTarih } from '@/lib/format'
 import PaylasimButonlari from './PaylasimButonlari'
+import HaberGaleri from './HaberGaleri'
 
 const SITE_URL = 'https://www.pusula24.de'
 
@@ -86,6 +87,8 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
             alt alta düzgün ayrışır. */}
         <Markdown remarkPlugins={[remarkBreaks]}>{haber.govde}</Markdown>
       </article>
+
+      {haber.galeri && haber.galeri.length > 0 && <HaberGaleri galeri={haber.galeri} />}
 
       {haber.kaynak_adi && (
         <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">

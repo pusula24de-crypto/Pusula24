@@ -71,6 +71,15 @@ export async function GET(request) {
       .select('kategoriler(ad, slug)')
       .eq('haber_id', siradaki.id)
     siradaki.ek_kategoriler = (ekKategoriSatirlari || []).map((s) => s.kategoriler).filter(Boolean)
+
+    // Galeri de aynı sebeple burada çekilir — akışa eklenen haberde de
+    // ilk yüklemedeki gibi galeri şeridi/lightbox görünsün.
+    const { data: galeriSatirlari } = await supabase
+      .from('haber_galeri')
+      .select('id, gorsel_url, ai_gorsel_mi, gorsel_kaynak_notu')
+      .eq('haber_id', siradaki.id)
+      .order('sira')
+    siradaki.galeri = galeriSatirlari || []
   }
 
   return NextResponse.json({ haber: siradaki })

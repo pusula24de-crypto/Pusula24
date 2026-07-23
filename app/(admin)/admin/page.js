@@ -16,6 +16,8 @@ import {
   ayarlariKaydet,
 } from './actions'
 
+const GALERI_MAKS = 10
+
 function isoToDatetimeLocal(iso) {
   if (!iso) return ''
   const d = new Date(iso)
@@ -167,6 +169,62 @@ function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onS
   )
 }
 
+function GaleriGorseli({ item, index, toplam, onAlanGuncelle, onSiraDegistir, onKaldir }) {
+  return (
+    <li className="flex gap-3 rounded border border-gray-800 bg-gray-950 p-3">
+      <div className="flex flex-col justify-center gap-0.5">
+        <button
+          type="button"
+          onClick={() => onSiraDegistir(index, 'yukari')}
+          disabled={index === 0}
+          aria-label="Yukarı taşı"
+          className="flex h-5 w-5 items-center justify-center rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-30 disabled:hover:bg-gray-800 transition text-xs"
+        >
+          ↑
+        </button>
+        <button
+          type="button"
+          onClick={() => onSiraDegistir(index, 'asagi')}
+          disabled={index === toplam - 1}
+          aria-label="Aşağı taşı"
+          className="flex h-5 w-5 items-center justify-center rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-30 disabled:hover:bg-gray-800 transition text-xs"
+        >
+          ↓
+        </button>
+      </div>
+      <img src={item.gorsel_url} alt="" className="h-16 w-16 shrink-0 rounded object-cover border border-gray-800" />
+      <div className="flex-1 space-y-2">
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id={`galeri-ai-${item.id}`}
+            checked={item.ai_gorsel_mi}
+            onChange={(e) => onAlanGuncelle(index, 'ai_gorsel_mi', e.target.checked)}
+            className="h-4 w-4 text-red-600 bg-gray-900 border-gray-800 rounded focus:ring-0"
+          />
+          <label htmlFor={`galeri-ai-${item.id}`} className="text-xs cursor-pointer select-none text-gray-300">
+            Bu görsel Yapay Zekâ ile üretildi
+          </label>
+        </div>
+        <input
+          type="text"
+          placeholder="Görsel Kaynağı (opsiyonel)"
+          value={item.gorsel_kaynak_notu}
+          onChange={(e) => onAlanGuncelle(index, 'gorsel_kaynak_notu', e.target.value)}
+          className="w-full bg-gray-900 border border-gray-800 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-red-600"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => onKaldir(index)}
+        className="self-start text-xs text-red-400 hover:text-red-500"
+      >
+        Kaldır
+      </button>
+    </li>
+  )
+}
+
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState('haber-ekle')
   const [haberler, setHaberler] = useState([])
@@ -188,6 +246,9 @@ export default function AdminPortal() {
   const [gorselBoyutBilgisi, setGorselBoyutBilgisi] = useState(null)
   const [aiGorsel, setAiGorsel] = useState(true)
   const [gorselKaynakNotu, setGorselKaynakNotu] = useState('')
+  const [galeri, setGaleri] = useState([])
+  const [galeriYukleniyor, setGaleriYukleniyor] = useState(false)
+  const [galeriHata, setGaleriHata] = useState('')
   const [durum, setDurum] = useState('draft')
   const [kaynakAdi, setKaynakAdi] = useState('')
   const [kaynakUrl, setKaynakUrl] = useState('')
@@ -279,6 +340,16 @@ export default function AdminPortal() {
     formData.append('kaynak_url', kaynakUrl)
     formData.append('seo_etiketleri', seoEtiketleri)
     formData.append('gorsel_kaynak_notu', gorselKaynakNotu)
+    formData.append(
+      'galeri_json',
+      JSON.stringify(
+        galeri.map(({ gorsel_url, ai_gorsel_mi, gorsel_kaynak_notu }) => ({
+          gorsel_url,
+          ai_gorsel_mi,
+          gorsel_kaynak_notu,
+        }))
+      )
+    )
     // datetime-local değeri tarayıcının YEREL saatini temsil eder (saat
     // dilimi bilgisi taşımaz). Bunu burada, tarayıcıda UTC ISO'ya çeviriyoruz.
     // Sunucuda (Vercel/Node, genelde UTC) aynı ham string yeniden
@@ -319,6 +390,54 @@ export default function AdminPortal() {
       setGorselYukleniyor(false)
       e.target.value = ''
     }
+  }
+
+  const handleGaleriDosyaSecildi = async (e) => {
+    const dosyalar = Array.from(e.target.files || [])
+    if (dosyalar.length === 0) return
+
+    setGaleriHata('')
+    setGaleriYukleniyor(true)
+    let mevcutSayi = galeri.length
+    try {
+      for (const dosya of dosyalar) {
+        if (mevcutSayi >= GALERI_MAKS) {
+          setGaleriHata(`En fazla ${GALERI_MAKS} galeri görseli eklenebilir.`)
+          break
+        }
+        const sonuc = await dosyaYukle(supabase, dosya, 'galeri-')
+        if (sonuc.error) {
+          setGaleriHata(sonuc.error)
+          continue
+        }
+        mevcutSayi += 1
+        setGaleri((onceki) => [
+          ...onceki,
+          { id: crypto.randomUUID(), gorsel_url: sonuc.url, ai_gorsel_mi: true, gorsel_kaynak_notu: '' },
+        ])
+      }
+    } finally {
+      setGaleriYukleniyor(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleGaleriAlanGuncelle = (index, alan, deger) => {
+    setGaleri((onceki) => onceki.map((g, i) => (i === index ? { ...g, [alan]: deger } : g)))
+  }
+
+  const handleGaleriSiraDegistir = (index, yon) => {
+    setGaleri((onceki) => {
+      const hedef = yon === 'yukari' ? index - 1 : index + 1
+      if (hedef < 0 || hedef >= onceki.length) return onceki
+      const kopya = [...onceki]
+      ;[kopya[index], kopya[hedef]] = [kopya[hedef], kopya[index]]
+      return kopya
+    })
+  }
+
+  const handleGaleriKaldir = (index) => {
+    setGaleri((onceki) => onceki.filter((_, i) => i !== index))
   }
 
   const handleYeniKatGorselSecildi = async (e) => {
@@ -368,6 +487,22 @@ export default function AdminPortal() {
       .select('kategori_id')
       .eq('haber_id', h.id)
     setEkKategoriIdler((ekKategoriSatirlari || []).map((s) => s.kategori_id))
+
+    // Galeri de ayrı bir tabloda (haber_galeri) tutuluyor — düzenleme
+    // açılırken sira sırasına göre çekilip forma yüklenir.
+    const { data: galeriSatirlari } = await supabase
+      .from('haber_galeri')
+      .select('id, gorsel_url, ai_gorsel_mi, gorsel_kaynak_notu')
+      .eq('haber_id', h.id)
+      .order('sira')
+    setGaleri(
+      (galeriSatirlari || []).map((g) => ({
+        id: g.id,
+        gorsel_url: g.gorsel_url,
+        ai_gorsel_mi: g.ai_gorsel_mi,
+        gorsel_kaynak_notu: g.gorsel_kaynak_notu || '',
+      }))
+    )
 
     setActiveTab('haber-ekle')
   }
@@ -440,6 +575,8 @@ export default function AdminPortal() {
     setGorselUrl('')
     setAiGorsel(true)
     setGorselKaynakNotu('')
+    setGaleri([])
+    setGaleriHata('')
     setDurum('draft')
     setKaynakAdi('')
     setKaynakUrl('')
@@ -647,6 +784,46 @@ export default function AdminPortal() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="border-t border-gray-800 pt-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-white">Galeri (opsiyonel)</h3>
+                <span className="text-xs text-gray-500">{galeri.length} / {GALERI_MAKS}</span>
+              </div>
+              {galeri.length > 0 && (
+                <ul className="mb-3 space-y-2">
+                  {galeri.map((item, i) => (
+                    <GaleriGorseli
+                      key={item.id}
+                      item={item}
+                      index={i}
+                      toplam={galeri.length}
+                      onAlanGuncelle={handleGaleriAlanGuncelle}
+                      onSiraDegistir={handleGaleriSiraDegistir}
+                      onKaldir={handleGaleriKaldir}
+                    />
+                  ))}
+                </ul>
+              )}
+              {galeri.length < GALERI_MAKS && (
+                <label className="inline-block cursor-pointer rounded border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-gray-300 hover:border-red-600 hover:text-white transition">
+                  Galeriye Görsel Ekle (Bilgisayardan Yükle)
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleGaleriDosyaSecildi}
+                    className="hidden"
+                    disabled={galeriYukleniyor}
+                  />
+                </label>
+              )}
+              {galeriYukleniyor && <p className="mt-2 text-xs text-gray-400">Sıkıştırılıyor ve yükleniyor...</p>}
+              {galeriHata && <p className="mt-2 text-xs text-red-400">{galeriHata}</p>}
+              <p className="mt-2 text-xs text-gray-500">
+                Haber detayında gövde metninin altında yatay bir şerit olarak gösterilir; tıklanınca tam ekran açılır. En fazla {GALERI_MAKS} görsel, aynı anda birden fazla dosya seçilebilir.
+              </p>
             </div>
 
             <div className="flex justify-end space-x-4 border-t border-gray-800 pt-4">

@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { markdownNormalizeEt } from '@/lib/markdownNormalize'
 
+const GALERI_MAKS = 10
+
 async function yetkiKontrolu() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -38,6 +40,16 @@ export async function haberKaydet(formData) {
     .map((s) => parseInt(s, 10))
     .filter((n) => Number.isInteger(n) && n !== anaKategoriId)
   const ekKategoriIdlerTekil = [...new Set(ekKategoriIdler)]
+
+  // Galeri: admin formunda JSON dizisi olarak biriktirilip tek alanda
+  // gönderilir (her öğe kendi ai_gorsel_mi/gorsel_kaynak_notu'una sahip
+  // olduğundan comma-join yetmez, ek kategorilerdeki gibi).
+  let galeriListesi = []
+  try {
+    galeriListesi = JSON.parse(formData.get('galeri_json') || '[]')
+  } catch {
+    galeriListesi = []
+  }
 
   // Zamanlanmış yayın: ileri bir tarih/saat seçildiyse haber otomatik
   // 'published' olur ama yayin_tarihi o gelecek zamana ayarlanır. Site
@@ -113,6 +125,32 @@ export async function haberKaydet(formData) {
         .insert(ekKategoriIdlerTekil.map((kid) => ({ haber_id: haberId, kategori_id: kid })))
 
       if (eklemeHatasi) return { success: false, error: 'Ek kategoriler kaydedilemedi: ' + eklemeHatasi.message }
+    }
+
+    // Galeri: aynı delete-then-insert deseni — önce bu habere ait eski
+    // galeri satırları silinir, sonra güncel liste sira (dizi index'i) ile
+    // yeniden eklenir. Ana görsele (haberler.gorsel_url) dokunulmaz.
+    const { error: galeriSilmeHatasi } = await supabase
+      .from('haber_galeri')
+      .delete()
+      .eq('haber_id', haberId)
+
+    if (galeriSilmeHatasi) return { success: false, error: 'Galeri güncellenemedi: ' + galeriSilmeHatasi.message }
+
+    const galeriSatirlari = galeriListesi
+      .filter((g) => g?.gorsel_url)
+      .slice(0, GALERI_MAKS)
+      .map((g, i) => ({
+        haber_id: haberId,
+        gorsel_url: g.gorsel_url,
+        sira: i,
+        ai_gorsel_mi: !!g.ai_gorsel_mi,
+        gorsel_kaynak_notu: g.gorsel_kaynak_notu?.trim() || null,
+      }))
+
+    if (galeriSatirlari.length > 0) {
+      const { error: galeriEklemeHatasi } = await supabase.from('haber_galeri').insert(galeriSatirlari)
+      if (galeriEklemeHatasi) return { success: false, error: 'Galeri kaydedilemedi: ' + galeriEklemeHatasi.message }
     }
   }
 
