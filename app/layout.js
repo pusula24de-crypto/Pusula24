@@ -1,4 +1,5 @@
 import { Archivo, Inter, Space_Grotesk } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import { createClient } from '@/lib/supabase/server'
 import Header from '@/components/Header'
@@ -106,6 +107,11 @@ export default async function RootLayout({ children }) {
         <Header kategoriler={kategoriler || []} />
         {children}
         <Footer kategoriler={kategoriler || []} />
+        <Script
+          strategy="afterInteractive"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "2a34bed14533440faaae045644ec64c9"}'
+        />
       </body>
     </html>
   )
