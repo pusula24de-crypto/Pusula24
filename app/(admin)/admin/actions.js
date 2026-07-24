@@ -178,7 +178,7 @@ export async function haberKaydet(formData) {
   revalidatePath(`/haber/${slug}`)
   revalidatePath('/kategori/[slug]', 'page')
 
-  return { success: true }
+  return { success: true, id: haberId }
 }
 
 export async function haberSil(id, slug) {

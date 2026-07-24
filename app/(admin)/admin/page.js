@@ -512,9 +512,23 @@ export default function AdminPortal() {
     setLoading(false)
 
     if (response.success) {
-      setMesaj({ tip: 'success', icerik: 'Haber başarıyla kaydedildi!' })
-      formuTemizle()
-      veriYukle()
+      setMesaj({ tip: 'success', icerik: '✓ Haber kaydedildi.' })
+      // Form BURADA temizlenmez: kullanıcı kaydettikten sonra sosyal medya
+      // metinlerini (artık gerçek link içeren, kalıcı halleriyle) Kopyala
+      // butonlarıyla kopyalamaya devam edebilsin diye haber, veritabanından
+      // taze haliyle yeniden çekilip düzenleme görünümünde tutulur. Form
+      // yalnızca kullanıcı "+ Yeni Haber Ekle" butonuna bilinçli basarsa
+      // temizlenir.
+      const kaydedilenId = secilenHaber?.id ? parseInt(secilenHaber.id) : response.id
+      const [, kaydedilenSonuc] = await Promise.all([
+        veriYukle(),
+        kaydedilenId
+          ? supabase.from('haberler').select('*').eq('id', kaydedilenId).single()
+          : Promise.resolve({ data: null }),
+      ])
+      if (kaydedilenSonuc?.data) {
+        await handleHaberDuzenle(kaydedilenSonuc.data)
+      }
     } else {
       setMesaj({ tip: 'error', icerik: response.error })
     }
@@ -766,7 +780,7 @@ export default function AdminPortal() {
         </div>
 
         <div className="flex space-x-4 mb-6">
-          <button onClick={() => { setActiveTab('haber-ekle'); formuTemizle(); }} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haber-ekle' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haber Ekle</button>
+          <button onClick={() => setActiveTab('haber-ekle')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haber-ekle' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haber Ekle</button>
           <button onClick={() => setActiveTab('haberleri-yonet')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haberleri-yonet' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haberleri Yönet ({haberler.length})</button>
           <button onClick={() => setActiveTab('kategoriler')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'kategoriler' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Kategorileri Yönet</button>
           <button onClick={() => setActiveTab('site-ayarlari')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'site-ayarlari' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Site Ayarları</button>
@@ -1088,7 +1102,7 @@ export default function AdminPortal() {
 
             <div className="flex justify-end space-x-4 border-t border-gray-800 pt-4">
               {secilenHaber && (
-                <button type="button" onClick={formuTemizle} className="px-5 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition">İptal Et</button>
+                <button type="button" onClick={formuTemizle} className="px-5 py-2 bg-gray-800 text-gray-300 rounded hover:bg-gray-700 transition">+ Yeni Haber Ekle</button>
               )}
               <button type="submit" disabled={loading} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium disabled:opacity-50 transition">{loading ? 'Kaydediliyor...' : 'Haber Kaydet'}</button>
             </div>
