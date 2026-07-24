@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { slugUret } from '@/lib/slug'
@@ -17,6 +17,8 @@ import {
 } from './actions'
 
 const GALERI_MAKS = 10
+const SITE_URL = 'https://www.pusula24.de'
+const LINK_YER_TUTUCU = '[LİNK]'
 
 // Redaksiyon çıktısındaki sabit etiketler — sırası metindeki gerçek sırayla
 // eşleşmek zorunda değil, ayrıştırıcı her etiketin metindeki konumunu bulup
@@ -388,6 +390,25 @@ export default function AdminPortal() {
     }
   }, [baslik, slugManuel])
 
+  // Slug her değiştiğinde (Ayrıştır ve Doldur, elle düzenleme veya
+  // başlıktan otomatik üretim fark etmeksizin), Facebook Metni ve X İlk
+  // Yanıt içinde daha önce yerleştirilmiş olan ESKİ haber linkini bulup
+  // YENİ linkle değiştirir — kullanıcı slug'ı sonradan elle değiştirse
+  // bile metinlerdeki link güncel kalır.
+  const oncekiSlugRef = useRef(slug)
+  useEffect(() => {
+    const oncekiSlug = oncekiSlugRef.current
+    if (oncekiSlug !== slug) {
+      const oncekiLink = oncekiSlug ? `${SITE_URL}/haber/${oncekiSlug}` : ''
+      const yeniLink = slug ? `${SITE_URL}/haber/${slug}` : ''
+      if (oncekiLink && yeniLink && oncekiLink !== yeniLink) {
+        setFacebookMetni((onceki) => (onceki.includes(oncekiLink) ? onceki.replaceAll(oncekiLink, yeniLink) : onceki))
+        setXIlkYanit((onceki) => (onceki.includes(oncekiLink) ? onceki.replaceAll(oncekiLink, yeniLink) : onceki))
+      }
+      oncekiSlugRef.current = slug
+    }
+  }, [slug])
+
   const handleAyristirVeDoldur = () => {
     if (!redaksiyonMetni.trim()) return
     const a = redaksiyonMetniniAyristir(redaksiyonMetni)
@@ -396,9 +417,16 @@ export default function AdminPortal() {
     // URL Slug yalnızca metinde açıkça verilmişse aynen kullanılır (ve
     // otomatik üretim mantığı ezilir); verilmemişse başlıktan otomatik
     // üretim akışı (yukarıdaki useEffect) olduğu gibi işlemeye devam eder.
+    // slugDegeri, aşağıdaki link hesaplamasında aynı anda kullanılmak üzere
+    // slug state'inin bu render sonrasında ALACAĞI değeri (state güncellemesi
+    // henüz uygulanmadığı için) yerel olarak taklit eder.
+    let slugDegeri = slug
     if (a.slug) {
+      slugDegeri = a.slug
       setSlug(a.slug)
       setSlugManuel(true)
+    } else if (!slugManuel) {
+      slugDegeri = a.baslik ? slugUret(a.baslik) : slug
     }
 
     const eslesenKategori = a.kategori
@@ -414,10 +442,18 @@ export default function AdminPortal() {
     // durumu yoktur, mevcut değer korunur).
     if (a.aiGorsel) setAiGorsel(a.aiGorsel.trim().toLowerCase().startsWith('evet'))
     setSeoEtiketleri(a.seoEtiketleri || '')
-    setFacebookMetni(a.facebookMetni || '')
+
+    // Facebook Metni ve X İlk Yanıt içindeki [LİNK] yer tutucusu, slug bu
+    // noktada zaten belli olduğu için kaydetmeyi beklemeden HEMEN gerçek
+    // adresle değiştirilir (kayıt anındaki aynı değişim actions.js'te
+    // güvence katmanı olarak ayrıca duruyor).
+    const haberLinki = slugDegeri ? `${SITE_URL}/haber/${slugDegeri}` : ''
+    const facebookMetniHam = a.facebookMetni || ''
+    const xIlkYanitHam = a.xIlkYanit || ''
+    setFacebookMetni(haberLinki ? facebookMetniHam.replaceAll(LINK_YER_TUTUCU, haberLinki) : facebookMetniHam)
+    setXIlkYanit(haberLinki ? xIlkYanitHam.replaceAll(LINK_YER_TUTUCU, haberLinki) : xIlkYanitHam)
     setInstagramMetni(a.instagramMetni || '')
     setXAnaGonderi(a.xAnaGonderi || '')
-    setXIlkYanit(a.xIlkYanit || '')
     setReelsMetni(a.reelsMetni || '')
     setGorselPromptu(a.gorselPromptu || '')
 
