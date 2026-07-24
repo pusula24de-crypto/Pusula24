@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { markdownNormalizeEt } from '@/lib/markdownNormalize'
+import { markdownNormalizeEt, satirSonuNormalizeEt } from '@/lib/markdownNormalize'
 
 const GALERI_MAKS = 10
 const SITE_URL = 'https://www.pusula24.de'
@@ -34,16 +34,24 @@ export async function haberKaydet(formData) {
   const gorsel_kaynak_notu = formData.get('gorsel_kaynak_notu')?.trim() || null
   const yayin_zamani = formData.get('yayin_zamani')
 
-  // Sosyal medya metinleri: Facebook Metni ve X İlk Yanıt içindeki "[LİNK]"
-  // placeholder'ı, slug bu noktada kesinleştiği için doğrudan burada gerçek
-  // haber URL'iyle değiştirilir — kullanıcı Kopyala butonuna bastığında
-  // veritabanındaki metin zaten gerçek linki içerir.
+  // Sosyal medya metinleri: satırSonuNormalizeEt burada ZORUNLU — form
+  // FormData ile gönderildiğinden, tarayıcının multipart/form-data
+  // serileştirmesi alan değerindeki "\n"leri "\r\n"ye çevirir ve
+  // formData.get() bu "\r"leri olduğu gibi geri verir. govde bunu
+  // markdownNormalizeEt üzerinden zaten temizliyordu; bu 5 alan da aynı
+  // temel temizliği (satirSonuNormalizeEt) almadan paragraf boşlukları
+  // başka uygulamalara yapıştırılınca bozuk görünebiliyordu.
+  //
+  // Facebook Metni ve X İlk Yanıt içindeki "[LİNK]" placeholder'ı, slug bu
+  // noktada kesinleştiği için doğrudan burada gerçek haber URL'iyle
+  // değiştirilir — kullanıcı Kopyala butonuna bastığında veritabanındaki
+  // metin zaten gerçek linki içerir.
   const haberLinki = `${SITE_URL}/haber/${slug}`
-  const instagram_metni = formData.get('instagram_metni')?.trim() || null
-  const x_ana_gonderi = formData.get('x_ana_gonderi')?.trim() || null
-  const reels_metni = formData.get('reels_metni')?.trim() || null
-  const facebook_metni_ham = formData.get('facebook_metni')?.trim() || null
-  const x_ilk_yanit_ham = formData.get('x_ilk_yanit')?.trim() || null
+  const instagram_metni = satirSonuNormalizeEt(formData.get('instagram_metni')) || null
+  const x_ana_gonderi = satirSonuNormalizeEt(formData.get('x_ana_gonderi')) || null
+  const reels_metni = satirSonuNormalizeEt(formData.get('reels_metni')) || null
+  const facebook_metni_ham = satirSonuNormalizeEt(formData.get('facebook_metni')) || null
+  const x_ilk_yanit_ham = satirSonuNormalizeEt(formData.get('x_ilk_yanit')) || null
   const facebook_metni = facebook_metni_ham?.replaceAll(LINK_YER_TUTUCU, haberLinki) ?? null
   const x_ilk_yanit = x_ilk_yanit_ham?.replaceAll(LINK_YER_TUTUCU, haberLinki) ?? null
 
