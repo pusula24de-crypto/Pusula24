@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { markdownNormalizeEt } from '@/lib/markdownNormalize'
 
 const GALERI_MAKS = 10
+const SITE_URL = 'https://www.pusula24.de'
+const LINK_YER_TUTUCU = '[LİNK]'
 
 async function yetkiKontrolu() {
   const supabase = await createClient()
@@ -31,6 +33,19 @@ export async function haberKaydet(formData) {
   const seo_etiketleri = formData.get('seo_etiketleri')?.trim() || null
   const gorsel_kaynak_notu = formData.get('gorsel_kaynak_notu')?.trim() || null
   const yayin_zamani = formData.get('yayin_zamani')
+
+  // Sosyal medya metinleri: Facebook Metni ve X İlk Yanıt içindeki "[LİNK]"
+  // placeholder'ı, slug bu noktada kesinleştiği için doğrudan burada gerçek
+  // haber URL'iyle değiştirilir — kullanıcı Kopyala butonuna bastığında
+  // veritabanındaki metin zaten gerçek linki içerir.
+  const haberLinki = `${SITE_URL}/haber/${slug}`
+  const instagram_metni = formData.get('instagram_metni')?.trim() || null
+  const x_ana_gonderi = formData.get('x_ana_gonderi')?.trim() || null
+  const reels_metni = formData.get('reels_metni')?.trim() || null
+  const facebook_metni_ham = formData.get('facebook_metni')?.trim() || null
+  const x_ilk_yanit_ham = formData.get('x_ilk_yanit')?.trim() || null
+  const facebook_metni = facebook_metni_ham?.replaceAll(LINK_YER_TUTUCU, haberLinki) ?? null
+  const x_ilk_yanit = x_ilk_yanit_ham?.replaceAll(LINK_YER_TUTUCU, haberLinki) ?? null
 
   // Ek kategoriler: virgülle ayrılmış id listesi. Ana Kategori'yle mükerrer
   // olmasın diye burada da (form tarafındaki filtrelemeye ek olarak) süzülür.
@@ -88,6 +103,11 @@ export async function haberKaydet(formData) {
     kaynak_url,
     seo_etiketleri,
     gorsel_kaynak_notu,
+    facebook_metni,
+    instagram_metni,
+    x_ana_gonderi,
+    x_ilk_yanit,
+    reels_metni,
     yazar_id: user.id,
     yayin_tarihi,
   }

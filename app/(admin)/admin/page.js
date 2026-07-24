@@ -18,6 +18,47 @@ import {
 
 const GALERI_MAKS = 10
 
+// Redaksiyon çıktısındaki sabit etiketler — sırası metindeki gerçek sırayla
+// eşleşmek zorunda değil, ayrıştırıcı her etiketin metindeki konumunu bulup
+// kendi sıralar.
+const REDAKSIYON_ETIKETLERI = [
+  ['baslik', 'BAŞLIK:'],
+  ['slug', 'URL SLUG:'],
+  ['kategori', 'KATEGORİ:'],
+  ['ozet', 'ÖZET (META):'],
+  ['govde', 'GÖVDE:'],
+  ['kaynakAdi', 'KAYNAK ADI:'],
+  ['kaynakUrl', 'KAYNAK URL:'],
+  ['aiGorsel', 'AI GÖRSEL:'],
+  ['gorselPromptu', 'GEMİNİ GÖRSEL PROMPTU:'],
+  ['seoEtiketleri', 'SEO ETİKETLERİ:'],
+  ['facebookMetni', 'FACEBOOK METNİ:'],
+  ['instagramMetni', 'INSTAGRAM METNİ:'],
+  ['xAnaGonderi', 'X — ANA GÖNDERİ:'],
+  ['xIlkYanit', 'X — İLK YANIT:'],
+  ['reelsMetni', '[REELS — TIKTOK/YOUTUBE] VİDEO METNİ:'],
+]
+
+// Redaksiyon metnini sabit etiketlere göre ayrıştırır. Her etiketin metin
+// içindeki konumunu bulur, konuma göre sıralar, ardışık iki etiket arasını
+// o alanın değeri sayar — çıktıdaki etiket SIRASI değişse bile çalışır.
+// Bulunamayan etiketler sonuç objesinde hiç yer almaz (çağıran taraf bunu
+// "alanı boş bırak" olarak yorumlar, hata fırlatmaz).
+function redaksiyonMetniniAyristir(metin) {
+  const bulunanlar = REDAKSIYON_ETIKETLERI
+    .map(([anahtar, etiket]) => ({ anahtar, index: metin.indexOf(etiket), uzunluk: etiket.length }))
+    .filter((b) => b.index !== -1)
+    .sort((a, b) => a.index - b.index)
+
+  const sonuc = {}
+  bulunanlar.forEach((bu, i) => {
+    const baslangic = bu.index + bu.uzunluk
+    const bitis = i + 1 < bulunanlar.length ? bulunanlar[i + 1].index : metin.length
+    sonuc[bu.anahtar] = metin.slice(baslangic, bitis).trim()
+  })
+  return sonuc
+}
+
 function isoToDatetimeLocal(iso) {
   if (!iso) return ''
   const d = new Date(iso)
@@ -225,6 +266,31 @@ function GaleriGorseli({ item, index, toplam, onAlanGuncelle, onSiraDegistir, on
   )
 }
 
+function KopyalaButonu({ metin }) {
+  const [kopyalandi, setKopyalandi] = useState(false)
+
+  const handleKopyala = async () => {
+    if (!metin) return
+    try {
+      await navigator.clipboard.writeText(metin)
+      setKopyalandi(true)
+      setTimeout(() => setKopyalandi(false), 1500)
+    } catch {
+      // Clipboard erişimi engellenmişse (izin/HTTPS vb.) sessizce yoksay.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleKopyala}
+      className="whitespace-nowrap rounded border border-gray-800 bg-gray-950 px-2 py-1 text-xs text-gray-300 hover:border-red-600 hover:text-white transition"
+    >
+      {kopyalandi ? 'Kopyalandı ✓' : '📋 Kopyala'}
+    </button>
+  )
+}
+
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState('haber-ekle')
   const [haberler, setHaberler] = useState([])
@@ -233,6 +299,8 @@ export default function AdminPortal() {
   const [mesaj, setMesaj] = useState({ tip: '', icerik: '' })
 
   const [secilenHaber, setSecilenHaber] = useState(null)
+  const [redaksiyonMetni, setRedaksiyonMetni] = useState('')
+  const [gorselPromptu, setGorselPromptu] = useState('')
   const [baslik, setBaslik] = useState('')
   const [slug, setSlug] = useState('')
   const [slugManuel, setSlugManuel] = useState(false)
@@ -253,6 +321,11 @@ export default function AdminPortal() {
   const [kaynakAdi, setKaynakAdi] = useState('')
   const [kaynakUrl, setKaynakUrl] = useState('')
   const [seoEtiketleri, setSeoEtiketleri] = useState('')
+  const [facebookMetni, setFacebookMetni] = useState('')
+  const [instagramMetni, setInstagramMetni] = useState('')
+  const [xAnaGonderi, setXAnaGonderi] = useState('')
+  const [xIlkYanit, setXIlkYanit] = useState('')
+  const [reelsMetni, setReelsMetni] = useState('')
   const [yayinZamani, setYayinZamani] = useState('')
 
   const [yeniKatAd, setYeniKatAd] = useState('')
@@ -315,6 +388,42 @@ export default function AdminPortal() {
     }
   }, [baslik, slugManuel])
 
+  const handleAyristirVeDoldur = () => {
+    if (!redaksiyonMetni.trim()) return
+    const a = redaksiyonMetniniAyristir(redaksiyonMetni)
+
+    setBaslik(a.baslik || '')
+    // URL Slug yalnızca metinde açıkça verilmişse aynen kullanılır (ve
+    // otomatik üretim mantığı ezilir); verilmemişse başlıktan otomatik
+    // üretim akışı (yukarıdaki useEffect) olduğu gibi işlemeye devam eder.
+    if (a.slug) {
+      setSlug(a.slug)
+      setSlugManuel(true)
+    }
+
+    const eslesenKategori = a.kategori
+      ? kategoriler.find((k) => k.ad.trim().toLowerCase() === a.kategori.trim().toLowerCase())
+      : null
+    setKategoriId(eslesenKategori ? String(eslesenKategori.id) : '')
+
+    setOzet(a.ozet || '')
+    setGovde(a.govde || '')
+    setKaynakAdi(a.kaynakAdi || '')
+    setKaynakUrl(a.kaynakUrl || '')
+    // AI Görsel bulunamadıysa checkbox'a dokunulmaz (boolean alanda "boş"
+    // durumu yoktur, mevcut değer korunur).
+    if (a.aiGorsel) setAiGorsel(a.aiGorsel.trim().toLowerCase().startsWith('evet'))
+    setSeoEtiketleri(a.seoEtiketleri || '')
+    setFacebookMetni(a.facebookMetni || '')
+    setInstagramMetni(a.instagramMetni || '')
+    setXAnaGonderi(a.xAnaGonderi || '')
+    setXIlkYanit(a.xIlkYanit || '')
+    setReelsMetni(a.reelsMetni || '')
+    setGorselPromptu(a.gorselPromptu || '')
+
+    setMesaj({ tip: 'success', icerik: 'Metin ayrıştırıldı, alanlar dolduruldu. Kaydetmeden önce kontrol edin.' })
+  }
+
   const handleHaberKaydet = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -340,6 +449,11 @@ export default function AdminPortal() {
     formData.append('kaynak_url', kaynakUrl)
     formData.append('seo_etiketleri', seoEtiketleri)
     formData.append('gorsel_kaynak_notu', gorselKaynakNotu)
+    formData.append('facebook_metni', facebookMetni)
+    formData.append('instagram_metni', instagramMetni)
+    formData.append('x_ana_gonderi', xAnaGonderi)
+    formData.append('x_ilk_yanit', xIlkYanit)
+    formData.append('reels_metni', reelsMetni)
     formData.append(
       'galeri_json',
       JSON.stringify(
@@ -477,6 +591,15 @@ export default function AdminPortal() {
     setKaynakAdi(h.kaynak_adi || '')
     setKaynakUrl(h.kaynak_url || '')
     setSeoEtiketleri(h.seo_etiketleri || '')
+    setFacebookMetni(h.facebook_metni || '')
+    setInstagramMetni(h.instagram_metni || '')
+    setXAnaGonderi(h.x_ana_gonderi || '')
+    setXIlkYanit(h.x_ilk_yanit || '')
+    setReelsMetni(h.reels_metni || '')
+    // Görsel promptu veritabanında saklanmaz, yapıştır kutusu da her
+    // düzenleme açılışında temiz başlar.
+    setGorselPromptu('')
+    setRedaksiyonMetni('')
     setYayinZamani(h.durum === 'published' ? isoToDatetimeLocal(h.yayin_tarihi) : '')
     setGorselBoyutBilgisi(null)
 
@@ -565,6 +688,8 @@ export default function AdminPortal() {
 
   const formuTemizle = () => {
     setSecilenHaber(null)
+    setRedaksiyonMetni('')
+    setGorselPromptu('')
     setBaslik('')
     setSlug('')
     setSlugManuel(false)
@@ -581,6 +706,11 @@ export default function AdminPortal() {
     setKaynakAdi('')
     setKaynakUrl('')
     setSeoEtiketleri('')
+    setFacebookMetni('')
+    setInstagramMetni('')
+    setXAnaGonderi('')
+    setXIlkYanit('')
+    setReelsMetni('')
     setYayinZamani('')
     setGorselBoyutBilgisi(null)
   }
@@ -627,6 +757,25 @@ export default function AdminPortal() {
                 </a>
               )}
             </div>
+
+            <div className="rounded-lg border border-dashed border-gray-700 bg-gray-950/50 p-4 space-y-3">
+              <label className="block text-sm font-medium text-white">Yapıştır ve Otomatik Doldur</label>
+              <textarea
+                rows={8}
+                value={redaksiyonMetni}
+                onChange={(e) => setRedaksiyonMetni(e.target.value)}
+                placeholder="Redaksiyon çıktısını buraya yapıştırın (BAŞLIK:, URL SLUG:, KATEGORİ: ... etiketleriyle)"
+                className="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-red-600"
+              />
+              <button
+                type="button"
+                onClick={handleAyristirVeDoldur}
+                className="px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded text-sm font-medium transition"
+              >
+                Ayrıştır ve Doldur
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
@@ -706,6 +855,11 @@ export default function AdminPortal() {
                   {gorselUrl && !gorselYukleniyor && (
                     <img src={gorselUrl} alt="Önizleme" className="mt-2 h-32 w-full rounded object-cover border border-gray-800" />
                   )}
+                  {gorselPromptu && (
+                    <div className="mt-2 rounded border border-blue-900 bg-blue-950/40 p-2 text-xs text-blue-200">
+                      💡 Görsel promptu: {gorselPromptu}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center space-x-2 bg-gray-950 p-3 rounded border border-gray-800">
                   <input type="checkbox" id="aiGorsel" checked={aiGorsel} onChange={(e) => setAiGorsel(e.target.checked)} className="h-4 w-4 text-red-600 bg-gray-900 border-gray-800 rounded focus:ring-0" />
@@ -783,6 +937,76 @@ export default function AdminPortal() {
                     Boş bırakılırsa yukarıdaki Yayın Durumu&apos;na göre davranır (taslak veya hemen yayında). Bir zaman seçilirse haber otomatik &quot;Yayına Ver&quot; olur ve o saatte belirir.
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-800 pt-6 space-y-4">
+              <h3 className="text-sm font-semibold text-white">Sosyal Medya Metinleri (opsiyonel)</h3>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">Facebook Metni</label>
+                  <KopyalaButonu metin={facebookMetni} />
+                </div>
+                <textarea
+                  rows={4}
+                  value={facebookMetni}
+                  onChange={(e) => setFacebookMetni(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  İçindeki [LİNK] yer tutucusu, haber kaydedilince otomatik olarak gerçek haber adresiyle değiştirilir.
+                </p>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">Instagram Metni</label>
+                  <KopyalaButonu metin={instagramMetni} />
+                </div>
+                <textarea
+                  rows={4}
+                  value={instagramMetni}
+                  onChange={(e) => setInstagramMetni(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">X — Ana Gönderi</label>
+                  <KopyalaButonu metin={xAnaGonderi} />
+                </div>
+                <textarea
+                  rows={3}
+                  value={xAnaGonderi}
+                  onChange={(e) => setXAnaGonderi(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">X — İlk Yanıt</label>
+                  <KopyalaButonu metin={xIlkYanit} />
+                </div>
+                <textarea
+                  rows={3}
+                  value={xIlkYanit}
+                  onChange={(e) => setXIlkYanit(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  İçindeki [LİNK] yer tutucusu, haber kaydedilince otomatik olarak gerçek haber adresiyle değiştirilir.
+                </p>
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">Reels / TikTok / YouTube Video Metni</label>
+                  <KopyalaButonu metin={reelsMetni} />
+                </div>
+                <textarea
+                  rows={4}
+                  value={reelsMetni}
+                  onChange={(e) => setReelsMetni(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
               </div>
             </div>
 
