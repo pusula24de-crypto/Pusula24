@@ -19,6 +19,7 @@ import {
 const GALERI_MAKS = 10
 const SITE_URL = 'https://www.pusula24.de'
 const LINK_YER_TUTUCU = '[LİNK]'
+const HABER_SAYFA_BASI = 50
 
 // Redaksiyon çıktısındaki sabit etiketler — sırası metindeki gerçek sırayla
 // eşleşmek zorunda değil, ayrıştırıcı her etiketin metindeki konumunu bulup
@@ -296,6 +297,8 @@ function KopyalaButonu({ metin }) {
 export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState('haber-ekle')
   const [haberler, setHaberler] = useState([])
+  const [haberSayisi, setHaberSayisi] = useState(0)
+  const [sayfa, setSayfa] = useState(1)
   const [kategoriler, setKategoriler] = useState([])
   const [loading, setLoading] = useState(false)
   const [mesaj, setMesaj] = useState({ tip: '', icerik: '' })
@@ -351,21 +354,44 @@ export default function AdminPortal() {
     veriYukle()
   }, [])
 
-  async function veriYukle() {
+  async function veriYukle(hedefSayfa = sayfa) {
     const { data: katData } = await supabase.from('kategoriler').select('*').order('sira')
     if (katData) setKategoriler(katData)
 
+    // Sekme başlığındaki sayaç GERÇEK toplam haber sayısını göstersin diye
+    // ayrı, satırları hiç çekmeyen bir count sorgusu (head: true — yalnızca
+    // sayı döner, performans için tüm satırlar transfer edilmez).
+    const { count } = await supabase
+      .from('haberler')
+      .select('*', { count: 'exact', head: true })
+    const toplam = count || 0
+    setHaberSayisi(toplam)
+
+    // Haber silinince mevcut sayfa artık sınırların dışında kalabilir
+    // (örn. son sayfadaki tek haber silindi) — bu durumda son geçerli
+    // sayfaya geri çek.
+    const toplamSayfaSayisi = Math.max(1, Math.ceil(toplam / HABER_SAYFA_BASI))
+    const gecerliSayfa = Math.min(Math.max(1, hedefSayfa), toplamSayfaSayisi)
+    if (gecerliSayfa !== sayfa) setSayfa(gecerliSayfa)
+
+    const baslangic = (gecerliSayfa - 1) * HABER_SAYFA_BASI
     const { data: habData } = await supabase
       .from('haberler')
       .select('*, kategoriler!haberler_kategori_id_fkey(ad)')
       .order('created_at', { ascending: false })
-      .limit(50)
+      .range(baslangic, baslangic + HABER_SAYFA_BASI - 1)
     if (habData) setHaberler(habData)
 
     const ayarlar = await ayarlariGetir()
     setGoogleDogrulama(ayarlar.google_site_verification || '')
     setAdsenseKodu(ayarlar.adsense_kodu || '')
     setAdsenseAktif(ayarlar.adsense_aktif === 'true')
+  }
+
+  const handleSayfaDegistir = (yon) => {
+    const yeniSayfa = yon === 'sonraki' ? sayfa + 1 : sayfa - 1
+    setSayfa(yeniSayfa)
+    veriYukle(yeniSayfa)
   }
 
   const handleAyarlariKaydet = async (e) => {
@@ -785,7 +811,7 @@ export default function AdminPortal() {
 
         <div className="flex space-x-4 mb-6">
           <button onClick={() => setActiveTab('haber-ekle')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haber-ekle' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haber Ekle</button>
-          <button onClick={() => setActiveTab('haberleri-yonet')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haberleri-yonet' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haberleri Yönet ({haberler.length})</button>
+          <button onClick={() => setActiveTab('haberleri-yonet')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haberleri-yonet' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haberleri Yönet ({haberSayisi})</button>
           <button onClick={() => setActiveTab('kategoriler')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'kategoriler' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Kategorileri Yönet</button>
           <button onClick={() => setActiveTab('site-ayarlari')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'site-ayarlari' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Site Ayarları</button>
         </div>
@@ -1172,6 +1198,29 @@ export default function AdminPortal() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between text-sm text-gray-400">
+              <button
+                type="button"
+                onClick={() => handleSayfaDegistir('onceki')}
+                disabled={sayfa <= 1}
+                className="px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 transition disabled:opacity-30 disabled:hover:bg-gray-800 disabled:cursor-not-allowed"
+              >
+                ◀ Önceki
+              </button>
+              <span>
+                Sayfa {sayfa} / {Math.max(1, Math.ceil(haberSayisi / HABER_SAYFA_BASI))}
+                <span className="text-gray-600"> — toplam {haberSayisi} haber</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => handleSayfaDegistir('sonraki')}
+                disabled={sayfa >= Math.max(1, Math.ceil(haberSayisi / HABER_SAYFA_BASI))}
+                className="px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 transition disabled:opacity-30 disabled:hover:bg-gray-800 disabled:cursor-not-allowed"
+              >
+                Sonraki ▶
+              </button>
             </div>
           </div>
         )}

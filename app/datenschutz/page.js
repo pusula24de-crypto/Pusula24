@@ -44,8 +44,9 @@ export default function DatenschutzPage() {
             Wir verarbeiten personenbezogene Daten nur, soweit dies zur
             Bereitstellung einer funktionsfähigen Website sowie unserer
             Inhalte erforderlich ist. Der öffentliche Bereich dieser
-            Website verwendet keine Tracking-Cookies, keine Analyse-Tools
-            und keine Werbenetzwerke.
+            Website verwendet keine Tracking-Cookies und keine
+            Werbenetzwerke. Ein cookieloses Analyse-Tool (siehe Ziffer 9)
+            kommt zur anonymen Reichweitenmessung zum Einsatz.
           </p>
         </div>
 
@@ -145,7 +146,46 @@ export default function DatenschutzPage() {
 
         <div>
           <h2 className="text-base font-bold text-neutral-900">
-            9. Cookies
+            9. Web Analytics (Cloudflare)
+          </h2>
+          <p className="mt-2">
+            Wir nutzen Cloudflare Web Analytics zur anonymen
+            Reichweitenmessung. Dieser Dienst verwendet keine Cookies und
+            erstellt keine individuellen Nutzerprofile; es werden
+            lediglich aggregierte, nicht personenbezogene
+            Nutzungsstatistiken (z.&nbsp;B. Seitenaufrufe, ungefähre
+            geografische Herkunft) erhoben. Rechtsgrundlage ist unser
+            berechtigtes Interesse an der Analyse und Verbesserung
+            unseres Angebots (Art. 6 Abs. 1 lit. f DSGVO). Eine
+            Einwilligung ist hierfür nicht erforderlich, da keine Cookies
+            oder vergleichbare Technologien im Sinne des § 25 TDDDG zum
+            Einsatz kommen.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-bold text-neutral-900">
+            10. YouTube-Videos (Klick-to-Play)
+          </h2>
+          <p className="mt-2">
+            In einzelnen Artikeln können YouTube-Videos eingebunden sein.
+            Aus Datenschutzgründen wird beim Aufruf der Seite zunächst
+            nur ein Vorschaubild geladen; es wird keine Verbindung zu
+            YouTube (Google Ireland Limited) hergestellt und es werden
+            keine Cookies gesetzt. Erst wenn Sie aktiv auf das
+            Wiedergabesymbol klicken, wird das Video über die
+            datenschutzfreundliche Domain youtube-nocookie.com geladen.
+            Mit dem Klick willigen Sie in die Verbindung zu YouTube ein
+            (Art. 6 Abs. 1 lit. a DSGVO); dabei kann Ihre IP-Adresse an
+            Google übermittelt und es können Cookies gesetzt werden.
+            Informationen zur Datenverarbeitung durch Google finden Sie
+            in der Datenschutzerklärung von Google.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-base font-bold text-neutral-900">
+            11. Cookies
           </h2>
           <p className="mt-2">
             Der öffentliche Bereich dieser Website setzt keine Cookies.
@@ -158,7 +198,7 @@ export default function DatenschutzPage() {
 
         <div>
           <h2 className="text-base font-bold text-neutral-900">
-            10. Kontaktaufnahme
+            12. Kontaktaufnahme
           </h2>
           <p className="mt-2">
             Bei Kontaktaufnahme per E-Mail werden die übermittelten
@@ -171,7 +211,7 @@ export default function DatenschutzPage() {
 
         <div>
           <h2 className="text-base font-bold text-neutral-900">
-            11. Journalistische Datenverarbeitung (Medienprivileg)
+            13. Journalistische Datenverarbeitung (Medienprivileg)
           </h2>
           <p className="mt-2">
             Für die Verarbeitung personenbezogener Daten zu
@@ -185,7 +225,7 @@ export default function DatenschutzPage() {
 
         <div>
           <h2 className="text-base font-bold text-neutral-900">
-            12. Ihre Rechte
+            14. Ihre Rechte
           </h2>
           <p className="mt-2">
             Sie haben nach Maßgabe der Art. 15–21 DSGVO das Recht auf
@@ -202,11 +242,13 @@ export default function DatenschutzPage() {
 
         <div>
           <h2 className="text-base font-bold text-neutral-900">
-            13. Stand dieser Erklärung
+            15. Stand dieser Erklärung
           </h2>
           <p className="mt-2">
-            Stand: Juli 2026. Wir passen diese Erklärung an, sobald sich
-            die eingesetzten Dienste oder Funktionen der Website ändern.
+            Stand: Juli 2026 (zuletzt aktualisiert: Cloudflare Web
+            Analytics, YouTube-Einbindung). Wir passen diese Erklärung
+            an, sobald sich die eingesetzten Dienste oder Funktionen der
+            Website ändern.
           </p>
         </div>
       </section>
