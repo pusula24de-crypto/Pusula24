@@ -319,6 +319,7 @@ export default function AdminPortal() {
   const [galeri, setGaleri] = useState([])
   const [galeriYukleniyor, setGaleriYukleniyor] = useState(false)
   const [galeriHata, setGaleriHata] = useState('')
+  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [durum, setDurum] = useState('draft')
   const [kaynakAdi, setKaynakAdi] = useState('')
   const [kaynakUrl, setKaynakUrl] = useState('')
@@ -485,6 +486,7 @@ export default function AdminPortal() {
     formData.append('kaynak_url', kaynakUrl)
     formData.append('seo_etiketleri', seoEtiketleri)
     formData.append('gorsel_kaynak_notu', gorselKaynakNotu)
+    formData.append('youtube_url', youtubeUrl)
     formData.append('facebook_metni', facebookMetni)
     formData.append('instagram_metni', instagramMetni)
     formData.append('x_ana_gonderi', xAnaGonderi)
@@ -637,6 +639,7 @@ export default function AdminPortal() {
     setGorselUrl(h.gorsel_url || '')
     setAiGorsel(h.ai_gorsel_mi)
     setGorselKaynakNotu(h.gorsel_kaynak_notu || '')
+    setYoutubeUrl(h.youtube_video_id || '')
     setDurum(h.durum)
     setKaynakAdi(h.kaynak_adi || '')
     setKaynakUrl(h.kaynak_url || '')
@@ -752,6 +755,7 @@ export default function AdminPortal() {
     setGorselKaynakNotu('')
     setGaleri([])
     setGaleriHata('')
+    setYoutubeUrl('')
     setDurum('draft')
     setKaynakAdi('')
     setKaynakUrl('')
@@ -926,6 +930,19 @@ export default function AdminPortal() {
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Görsel YZ ile üretilmediyse ve buraya bir kaynak yazarsanız, haber detayında görselin altında &quot;Fotoğraf: ...&quot; olarak görünür.
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">YouTube Video Linki (opsiyonel)</label>
+                  <input
+                    type="text"
+                    placeholder="https://www.youtube.com/watch?v=... veya https://youtu.be/..."
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tam YouTube linkini yapıştırın; kaydedince video ID otomatik çıkarılır. Haber detayında gövde metninin altında, tıklanınca yüklenen bir video kartı olarak gösterilir (çerezsiz statü korunur).
                   </p>
                 </div>
               </div>

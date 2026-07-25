@@ -8,6 +8,23 @@ const GALERI_MAKS = 10
 const SITE_URL = 'https://www.pusula24.de'
 const LINK_YER_TUTUCU = '[LİNK]'
 
+// Admin panelden yapıştırılan tam YouTube URL'sinden (watch?v=, youtu.be/,
+// embed/, shorts/) ya da doğrudan girilen sade video ID'den 11 karakterlik
+// video ID'yi çıkarır. Tanınmayan/geçersiz bir format girilirse null döner
+// — çağıran taraf bunu hata göstermeden alanı boş bırakarak ele alır.
+function youtubeVideoIdCikar(girdi) {
+  if (!girdi) return null
+  const metin = girdi.trim()
+  if (!metin) return null
+
+  if (/^[A-Za-z0-9_-]{11}$/.test(metin)) return metin
+
+  const eslesme = metin.match(
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+  )
+  return eslesme ? eslesme[1] : null
+}
+
 async function yetkiKontrolu() {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -32,6 +49,7 @@ export async function haberKaydet(formData) {
   const kaynak_url = formData.get('kaynak_url')?.trim() || null
   const seo_etiketleri = formData.get('seo_etiketleri')?.trim() || null
   const gorsel_kaynak_notu = formData.get('gorsel_kaynak_notu')?.trim() || null
+  const youtube_video_id = youtubeVideoIdCikar(formData.get('youtube_url'))
   const yayin_zamani = formData.get('yayin_zamani')
 
   // Sosyal medya metinleri: satırSonuNormalizeEt burada ZORUNLU — form
@@ -111,6 +129,7 @@ export async function haberKaydet(formData) {
     kaynak_url,
     seo_etiketleri,
     gorsel_kaynak_notu,
+    youtube_video_id,
     facebook_metni,
     instagram_metni,
     x_ana_gonderi,

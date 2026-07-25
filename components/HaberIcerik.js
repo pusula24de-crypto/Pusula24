@@ -4,6 +4,7 @@ import remarkBreaks from 'remark-breaks'
 import { formatTarih } from '@/lib/format'
 import PaylasimButonlari from './PaylasimButonlari'
 import HaberGaleri from './HaberGaleri'
+import HaberVideo from './HaberVideo'
 
 const SITE_URL = 'https://www.pusula24.de'
 
@@ -89,6 +90,8 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
       </article>
 
       {haber.galeri && haber.galeri.length > 0 && <HaberGaleri galeri={haber.galeri} />}
+
+      {haber.youtube_video_id && <HaberVideo videoId={haber.youtube_video_id} />}
 
       {haber.kaynak_adi && (
         <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
