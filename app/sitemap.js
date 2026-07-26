@@ -11,7 +11,7 @@ export default async function sitemap() {
   const simdi = new Date()
   const simdiIso = simdi.toISOString()
 
-  const [{ data: haberler }, { data: kategoriler }] = await Promise.all([
+  const [{ data: haberler }, { data: kategoriler }, { data: rehberler }] = await Promise.all([
     supabase
       .from('haberler')
       .select('slug, yayin_tarihi, updated_at')
@@ -19,6 +19,11 @@ export default async function sitemap() {
       .lte('yayin_tarihi', simdiIso)
       .order('yayin_tarihi', { ascending: false }),
     supabase.from('kategoriler').select('slug').order('sira'),
+    supabase
+      .from('rehberler')
+      .select('slug, son_guncelleme_tarihi')
+      .eq('durum', 'published')
+      .order('son_guncelleme_tarihi', { ascending: false }),
   ])
 
   const anasayfa = [
@@ -44,5 +49,24 @@ export default async function sitemap() {
     priority: 0.6,
   }))
 
-  return [...anasayfa, ...kategoriUrlleri, ...haberUrlleri]
+  const rehberlerAnasayfasi = [
+    {
+      url: `${SITE_URL}/rehberler`,
+      lastModified: simdi,
+      changeFrequency: 'daily',
+      priority: 0.7,
+    },
+  ]
+
+  // lastModified = son_guncelleme_tarihi: rehberler haberlerin aksine
+  // süresiz içerik — bir rehber elden geçirildiğinde bu tarih arama
+  // motoruna "burası güncellendi" sinyali verir.
+  const rehberUrlleri = (rehberler || []).map((r) => ({
+    url: `${SITE_URL}/rehber/${r.slug}`,
+    lastModified: new Date(r.son_guncelleme_tarihi),
+    changeFrequency: 'monthly',
+    priority: 0.6,
+  }))
+
+  return [...anasayfa, ...kategoriUrlleri, ...haberUrlleri, ...rehberlerAnasayfasi, ...rehberUrlleri]
 }

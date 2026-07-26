@@ -47,6 +47,11 @@ export default function Footer({ kategoriler }) {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/rehberler" className="transition hover:text-red-500">
+                Rehberler
+              </Link>
+            </li>
           </ul>
         </div>
 

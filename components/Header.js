@@ -82,6 +82,16 @@ export default function Header({ kategoriler }) {
                 </Link>
               )
             })}
+            <Link
+              href="/rehberler"
+              className={`rounded-md px-3 py-1.5 text-[15px] font-semibold transition ${
+                pathname === '/rehberler' || pathname.startsWith('/rehber/')
+                  ? 'bg-red-600 text-white'
+                  : 'text-neutral-900 hover:bg-red-600 hover:text-white'
+              }`}
+            >
+              Rehberler
+            </Link>
           </div>
 
           <AramaKutusu variant="masaustu" />
@@ -104,6 +114,13 @@ export default function Header({ kategoriler }) {
               {k.ad}
             </Link>
           ))}
+          <Link
+            href="/rehberler"
+            onClick={() => setMenuAcik(false)}
+            className="rounded-md px-3 py-2 text-[15px] font-semibold text-neutral-900 transition hover:bg-red-600 hover:text-white"
+          >
+            Rehberler
+          </Link>
           <div className="mt-2 flex items-center gap-3 border-t border-neutral-200 pt-3">
             {SOSYAL_LINKLER.map(({ Icon, label, href }) => (
               <a

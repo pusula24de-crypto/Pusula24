@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { slugUret } from '@/lib/slug'
-import { gorselSikistir, boyutFormatla } from '@/lib/gorselOptimizasyon'
+import { boyutFormatla } from '@/lib/gorselOptimizasyon'
+import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
+import RehberPanel from './RehberPanel'
 import {
   haberKaydet,
   haberSil,
@@ -60,46 +62,6 @@ function redaksiyonMetniniAyristir(metin) {
     sonuc[bu.anahtar] = metin.slice(baslangic, bitis).trim()
   })
   return sonuc
-}
-
-function isoToDatetimeLocal(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const yerelOfset = d.getTimezoneOffset() * 60000
-  return new Date(d.getTime() - yerelOfset).toISOString().slice(0, 16)
-}
-
-// Yüklemeden önce görseli tarayıcıda 1600px/WebP'ye sıkıştırır (bkz.
-// lib/gorselOptimizasyon), sonra Supabase Storage'a atar. boyutBilgisi
-// çağıran tarafın "1.6 MB → 210 KB" gibi bir geri bildirim göstermesi için
-// dönülür.
-async function dosyaYukle(supabase, dosya, onEk = '') {
-  let yuklenecekDosya
-  let boyutBilgisi = null
-
-  try {
-    const sonuc = await gorselSikistir(dosya)
-    yuklenecekDosya = sonuc.dosya
-    boyutBilgisi = { orijinalBoyut: sonuc.orijinalBoyut, yeniBoyut: sonuc.yeniBoyut }
-  } catch (err) {
-    return { url: null, error: err.message, boyutBilgisi: null }
-  }
-
-  const guvenliAd = yuklenecekDosya.name.replace(/[^a-zA-Z0-9.\-_]/g, '-')
-  const dosyaYolu = `${onEk}${Date.now()}-${guvenliAd}`
-
-  const { error } = await supabase.storage
-    .from('haber-gorselleri')
-    .upload(dosyaYolu, yuklenecekDosya, { contentType: 'image/webp' })
-  if (error) {
-    const mesaj = error.message?.toLowerCase().includes('bucket not found')
-      ? 'Storage bucket bulunamadı. Lütfen Supabase panelinden "haber-gorselleri" adında public bir bucket oluşturun.'
-      : 'Görsel yüklenemedi: ' + error.message
-    return { url: null, error: mesaj, boyutBilgisi: null }
-  }
-
-  const { data } = supabase.storage.from('haber-gorselleri').getPublicUrl(dosyaYolu)
-  return { url: data.publicUrl, error: null, boyutBilgisi }
 }
 
 function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onSil, onGorselKaydet }) {
@@ -812,6 +774,8 @@ export default function AdminPortal() {
         <div className="flex space-x-4 mb-6">
           <button onClick={() => setActiveTab('haber-ekle')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haber-ekle' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haber Ekle</button>
           <button onClick={() => setActiveTab('haberleri-yonet')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'haberleri-yonet' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Haberleri Yönet ({haberSayisi})</button>
+          <button onClick={() => setActiveTab('rehber-ekle')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'rehber-ekle' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Rehber Ekle</button>
+          <button onClick={() => setActiveTab('rehberleri-yonet')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'rehberleri-yonet' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Rehberleri Yönet</button>
           <button onClick={() => setActiveTab('kategoriler')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'kategoriler' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Kategorileri Yönet</button>
           <button onClick={() => setActiveTab('site-ayarlari')} className={`px-4 py-2 rounded-md text-sm transition ${activeTab === 'site-ayarlari' ? 'bg-red-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>Site Ayarları</button>
         </div>
@@ -1361,6 +1325,17 @@ export default function AdminPortal() {
             </div>
           </form>
         )}
+
+        {/* Koşulsuz mount edilir — kendi görünürlüğüne activeTab'a bakarak
+            kendisi karar verir. Böylece başka bir sekmeye geçilip geri
+            dönüldüğünde form/liste state'i kaybolmaz (haberlerdeki "kaydet
+            sonrası form korunsun" düzeltmesiyle aynı mantık). */}
+        <RehberPanel
+          activeTab={activeTab}
+          onActiveTabDegistir={setActiveTab}
+          mesaj={mesaj}
+          setMesaj={setMesaj}
+        />
       </div>
     </div>
   )
