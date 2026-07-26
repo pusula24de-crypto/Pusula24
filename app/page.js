@@ -42,13 +42,6 @@ export default async function Anasayfa() {
     .order('yayin_tarihi', { ascending: false })
     .limit(10)
 
-  const { data: rehberler } = await supabase
-    .from('rehberler')
-    .select('id, baslik, slug, ozet, gorsel_url, ai_gorsel_mi, kategori, son_guncelleme_tarihi')
-    .eq('durum', 'published')
-    .order('son_guncelleme_tarihi', { ascending: false })
-    .limit(4)
-
   const kategoriBloklari = kategoriler
     ? await Promise.all(
         kategoriler.map(async (kategori) => {
@@ -141,7 +134,7 @@ export default async function Anasayfa() {
       {/* lg altı: yatay kaydırmalı şerit. lg+: aşağıdaki sağ sütuna taşınır. */}
       <CokOkunanlar haberler={cokOkunanlar} variant="serit" />
 
-      <RehberlerSeridi rehberler={rehberler} />
+      <RehberlerSeridi />
 
       <div className="lg:grid lg:grid-cols-[1fr_340px] lg:items-start lg:gap-10">
         <div className="space-y-10">
