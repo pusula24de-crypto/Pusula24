@@ -70,18 +70,32 @@ export default function RehberlerSeridi() {
 
   useEffect(() => {
     let iptalEdildi = false
-    const supabase = createClient()
 
-    supabase
-      .from('rehberler')
-      .select('id, baslik, slug, ozet, gorsel_url, ai_gorsel_mi, kategori, son_guncelleme_tarihi')
-      .eq('durum', 'published')
-      .then(({ data }) => {
+    async function rehberleriGetir() {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('rehberler')
+          .select('id, baslik, slug, ozet, gorsel_url, ai_gorsel_mi, kategori, son_guncelleme_tarihi')
+          .eq('durum', 'published')
+
         if (iptalEdildi) return
+        if (error) throw error
+
         const karisik = karistir(data || [])
         setGosterilecekler(cesitlilikliSecim(karisik, GOSTERILECEK_ADET))
-        setYukleniyor(false)
-      })
+      } catch {
+        // Bu şerit anasayfanın küçük, opsiyonel bir tanıtım bölümü —
+        // ağ/Supabase hatası durumunda sessizce hiç render edilmemesi,
+        // sayfanın geri kalanını (Çok Okunanlar dahil) hiçbir şekilde
+        // etkilememesi gerekir.
+        if (!iptalEdildi) setGosterilecekler([])
+      } finally {
+        if (!iptalEdildi) setYukleniyor(false)
+      }
+    }
+
+    rehberleriGetir()
 
     return () => {
       iptalEdildi = true
