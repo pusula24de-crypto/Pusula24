@@ -42,7 +42,13 @@ export async function POST(request) {
       .webp({ quality: SUNUCU_KALITE })
       .toBuffer()
 
-    return new NextResponse(webpBuffer, {
+    // KANITLANMIŞ HATA (bkz. proje geçmişi): Vercel'de ham bir Node Buffer
+    // doğrudan NextResponse'a verilince ikili veri bozuluyor — indirilen
+    // dosyalarda tekrarlayan "ef bf bd" (U+FFFD) baytları görülüyor, yani
+    // içerik bir yerlerde UTF-8 metin gibi decode edilip yeniden encode
+    // ediliyor. Aynı sharp çıktısını Uint8Array'e sarıp vermek (yerelde VE
+    // canlıda ayrı ayrı doğrulandı) sorunu tamamen ortadan kaldırıyor.
+    return new NextResponse(new Uint8Array(webpBuffer), {
       status: 200,
       headers: { 'Content-Type': 'image/webp' },
     })
