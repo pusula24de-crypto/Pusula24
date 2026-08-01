@@ -5,10 +5,26 @@ import { createClient } from '@/lib/supabase/client'
 import { slugUret } from '@/lib/slug'
 import { boyutFormatla } from '@/lib/gorselOptimizasyon'
 import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
+import { etiketliMetniAyristir, sssBlokuAyristir } from '@/lib/etiketliMetniAyristir'
 import { REHBER_KATEGORILERI } from '@/lib/rehberKategorileri'
 import { rehberKaydet, rehberSil } from './rehberActions'
+import KopyalaButonu from './KopyalaButonu'
 
 const REHBER_SAYFA_BASI = 50
+
+// Rehber motoru çıktısındaki sabit etiketler — sırası metindeki gerçek
+// sırayla eşleşmek zorunda değil, etiketliMetniAyristir her etiketin
+// metindeki konumunu bulup kendi sıralar.
+const REHBER_ETIKETLERI = [
+  ['baslik', 'BAŞLIK:'],
+  ['slug', 'URL SLUG:'],
+  ['kategori', 'KATEGORİ:'],
+  ['ozet', 'ÖZET (META):'],
+  ['govde', 'GÖVDE:'],
+  ['gorselPromptu', 'GEMİNİ GÖRSEL PROMPTU:'],
+  ['seoEtiketleri', 'SEO ETİKETLERİ:'],
+  ['sss', 'SSS:'],
+]
 
 function SssSatiri({ item, index, onAlanGuncelle, onKaldir }) {
   return (
@@ -55,6 +71,8 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
   const [loading, setLoading] = useState(false)
 
   const [secilenRehber, setSecilenRehber] = useState(null)
+  const [redaksiyonMetni, setRedaksiyonMetni] = useState('')
+  const [gorselPromptu, setGorselPromptu] = useState('')
   const [baslik, setBaslik] = useState('')
   const [slug, setSlug] = useState('')
   const [slugManuel, setSlugManuel] = useState(false)
@@ -115,6 +133,8 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
 
   const formuTemizle = () => {
     setSecilenRehber(null)
+    setRedaksiyonMetni('')
+    setGorselPromptu('')
     setBaslik('')
     setSlug('')
     setSlugManuel(false)
@@ -147,7 +167,44 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
     setSonGuncellemeTarihi(isoToDatetimeLocal(r.son_guncelleme_tarihi))
     setDurum(r.durum)
     setSeoEtiketleri(r.seo_etiketleri || '')
+    // Görsel promptu veritabanında saklanmaz, yapıştır kutusu da her
+    // düzenleme açılışında temiz başlar (haberlerdeki aynı desenle tutarlı).
+    setGorselPromptu('')
+    setRedaksiyonMetni('')
     onActiveTabDegistir('rehber-ekle')
+  }
+
+  const handleAyristirVeDoldur = () => {
+    if (!redaksiyonMetni.trim()) return
+    const a = etiketliMetniAyristir(redaksiyonMetni, REHBER_ETIKETLERI)
+
+    setBaslik(a.baslik || '')
+    // URL Slug yalnızca metinde açıkça verilmişse aynen kullanılır (ve
+    // otomatik üretim mantığı ezilir); verilmemişse başlıktan otomatik
+    // üretim akışı (yukarıdaki useEffect) olduğu gibi işlemeye devam eder.
+    if (a.slug) {
+      setSlug(a.slug)
+      setSlugManuel(true)
+    }
+
+    const eslesenKategori = a.kategori
+      ? REHBER_KATEGORILERI.find((k) => k.trim().toLowerCase() === a.kategori.trim().toLowerCase())
+      : null
+    setKategori(eslesenKategori || '')
+
+    setOzet(a.ozet || '')
+    setGovde(a.govde || '')
+    setSeoEtiketleri(a.seoEtiketleri || '')
+    setGorselPromptu(a.gorselPromptu || '')
+
+    // SSS bloğu: her soru-cevap çifti otomatik olarak birer satır halinde
+    // dolduruluyor, kullanıcının elle "+ Soru Ekle"ye basmasına gerek kalmaz.
+    // Format eşleşmezse (a.sss yok ya da beklenen desende değilse) boş dizi
+    // döner — mevcut SSS listesi olduğu gibi bırakılmaz, yapıştırılan metin
+    // esas alınır.
+    setSss(a.sss ? sssBlokuAyristir(a.sss) : [])
+
+    setMesaj({ tip: 'success', icerik: 'Metin ayrıştırıldı, alanlar dolduruldu. Kaydetmeden önce kontrol edin.' })
   }
 
   const handleGorselDosyaSecildi = async (e) => {
@@ -252,6 +309,24 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
             {secilenRehber ? 'Rehberi Düzenle' : 'Yeni Rehber Girişi'}
           </h2>
 
+          <div className="rounded-lg border border-dashed border-gray-700 bg-gray-950/50 p-4 space-y-3">
+            <label className="block text-sm font-medium text-white">Yapıştır ve Otomatik Doldur</label>
+            <textarea
+              rows={8}
+              value={redaksiyonMetni}
+              onChange={(e) => setRedaksiyonMetni(e.target.value)}
+              placeholder="Rehber motoru çıktısını buraya yapıştırın (BAŞLIK:, URL SLUG:, KATEGORİ: ... etiketleriyle)"
+              className="w-full bg-gray-900 border border-gray-800 rounded px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-red-600"
+            />
+            <button
+              type="button"
+              onClick={handleAyristirVeDoldur}
+              className="px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded text-sm font-medium transition"
+            >
+              Ayrıştır ve Doldur
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
@@ -285,6 +360,9 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
                   onChange={(e) => setKategori(e.target.value)}
                   className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white focus:outline-none focus:border-red-600"
                 >
+                  {kategori === '' && (
+                    <option value="" disabled>-- Kategori seçin --</option>
+                  )}
                   {REHBER_KATEGORILERI.map((k) => (
                     <option key={k} value={k}>{k}</option>
                   ))}
@@ -316,6 +394,12 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
                 )}
                 {gorselUrl && !gorselYukleniyor && (
                   <img src={gorselUrl} alt="Önizleme" className="mt-2 h-32 w-full rounded object-cover border border-gray-800" />
+                )}
+                {gorselPromptu && (
+                  <div className="mt-2 flex items-start justify-between gap-2 rounded border border-blue-900 bg-blue-950/40 p-2 text-xs text-blue-200">
+                    <span>💡 Görsel promptu: {gorselPromptu}</span>
+                    <KopyalaButonu metin={gorselPromptu} />
+                  </div>
                 )}
               </div>
               <div className="flex items-center space-x-2 bg-gray-950 p-3 rounded border border-gray-800">

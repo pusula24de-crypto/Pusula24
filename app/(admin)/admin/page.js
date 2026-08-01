@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { slugUret } from '@/lib/slug'
 import { boyutFormatla } from '@/lib/gorselOptimizasyon'
 import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
+import { etiketliMetniAyristir } from '@/lib/etiketliMetniAyristir'
+import KopyalaButonu from './KopyalaButonu'
 import RehberPanel from './RehberPanel'
 import {
   haberKaydet,
@@ -50,18 +52,7 @@ const REDAKSIYON_ETIKETLERI = [
 // Bulunamayan etiketler sonuç objesinde hiç yer almaz (çağıran taraf bunu
 // "alanı boş bırak" olarak yorumlar, hata fırlatmaz).
 function redaksiyonMetniniAyristir(metin) {
-  const bulunanlar = REDAKSIYON_ETIKETLERI
-    .map(([anahtar, etiket]) => ({ anahtar, index: metin.indexOf(etiket), uzunluk: etiket.length }))
-    .filter((b) => b.index !== -1)
-    .sort((a, b) => a.index - b.index)
-
-  const sonuc = {}
-  bulunanlar.forEach((bu, i) => {
-    const baslangic = bu.index + bu.uzunluk
-    const bitis = i + 1 < bulunanlar.length ? bulunanlar[i + 1].index : metin.length
-    sonuc[bu.anahtar] = metin.slice(baslangic, bitis).trim()
-  })
-  return sonuc
+  return etiketliMetniAyristir(metin, REDAKSIYON_ETIKETLERI)
 }
 
 function KategoriSatiri({ kategori, index, toplam, supabase, onSiraDegistir, onSil, onGorselKaydet }) {
@@ -228,31 +219,6 @@ function GaleriGorseli({ item, index, toplam, onAlanGuncelle, onSiraDegistir, on
         Kaldır
       </button>
     </li>
-  )
-}
-
-function KopyalaButonu({ metin }) {
-  const [kopyalandi, setKopyalandi] = useState(false)
-
-  const handleKopyala = async () => {
-    if (!metin) return
-    try {
-      await navigator.clipboard.writeText(metin)
-      setKopyalandi(true)
-      setTimeout(() => setKopyalandi(false), 1500)
-    } catch {
-      // Clipboard erişimi engellenmişse (izin/HTTPS vb.) sessizce yoksay.
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleKopyala}
-      className="whitespace-nowrap rounded border border-gray-800 bg-gray-950 px-2 py-1 text-xs text-gray-300 hover:border-red-600 hover:text-white transition"
-    >
-      {kopyalandi ? 'Kopyalandı ✓' : '📋 Kopyala'}
-    </button>
   )
 }
 
