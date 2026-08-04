@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { slugUret } from '@/lib/slug'
+import { slugUret, slugSanitizeEt } from '@/lib/slug'
 import { boyutFormatla } from '@/lib/gorselOptimizasyon'
 import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
 import { etiketliMetniAyristir, sssBlokuAyristir } from '@/lib/etiketliMetniAyristir'
@@ -183,7 +183,11 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
     // otomatik üretim mantığı ezilir); verilmemişse başlıktan otomatik
     // üretim akışı (yukarıdaki useEffect) olduğu gibi işlemeye devam eder.
     if (a.slug) {
-      setSlug(a.slug)
+      // Ayrıştırma bir sonraki etiketi bulamazsa (ör. Türkçe/ASCII karakter
+      // farkı), URL SLUG alanı yanlışlıkla sonraki satır(lar)ı da yutabilir
+      // — slugSanitizeEt burada son bir güvence katmanı: tek satıra indirir
+      // ve yalnızca [a-z0-9-] bırakır (bkz. proje geçmişi, haberler.id=208).
+      setSlug(slugSanitizeEt(a.slug))
       setSlugManuel(true)
     }
 

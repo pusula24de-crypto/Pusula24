@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { markdownNormalizeEt, satirSonuNormalizeEt } from '@/lib/markdownNormalize'
+import { slugSanitizeEt } from '@/lib/slug'
 
 const GALERI_MAKS = 10
 const SITE_URL = 'https://www.pusula24.de'
@@ -40,7 +41,10 @@ export async function haberKaydet(formData) {
   const baslik = formData.get('baslik')
   const ozet = formData.get('ozet')
   const govde = markdownNormalizeEt(formData.get('govde'))
-  const slug = formData.get('slug')
+  // Son güvence: ayrıştırma ya da elle giriş kaynaklı olsun, DB'ye asla
+  // tek satırı/[a-z0-9-] kümesini aşan bir slug gitmesin (bkz. proje
+  // geçmişi — haberler.id=208'de görülen ayrıştırma kaynaklı bozulma).
+  const slug = slugSanitizeEt(formData.get('slug'))
   const kategori_id = formData.get('kategori_id')
   const gorsel_url = formData.get('gorsel_url')
   const ai_gorsel_mi = formData.get('ai_gorsel_mi') === 'true'

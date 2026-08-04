@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { slugUret } from '@/lib/slug'
+import { slugUret, slugSanitizeEt } from '@/lib/slug'
 import { boyutFormatla } from '@/lib/gorselOptimizasyon'
 import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
 import { etiketliMetniAyristir } from '@/lib/etiketliMetniAyristir'
@@ -377,8 +377,12 @@ export default function AdminPortal() {
     // henüz uygulanmadığı için) yerel olarak taklit eder.
     let slugDegeri = slug
     if (a.slug) {
-      slugDegeri = a.slug
-      setSlug(a.slug)
+      // Ayrıştırma bir sonraki etiketi bulamazsa (ör. Türkçe/ASCII karakter
+      // farkı), URL SLUG alanı yanlışlıkla sonraki satır(lar)ı da yutabilir
+      // — slugSanitizeEt burada son bir güvence katmanı: tek satıra indirir
+      // ve yalnızca [a-z0-9-] bırakır (bkz. proje geçmişi, haberler.id=208).
+      slugDegeri = slugSanitizeEt(a.slug)
+      setSlug(slugDegeri)
       setSlugManuel(true)
     } else if (!slugManuel) {
       slugDegeri = a.baslik ? slugUret(a.baslik) : slug

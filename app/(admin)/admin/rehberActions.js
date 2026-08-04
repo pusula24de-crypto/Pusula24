@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { markdownNormalizeEt, satirSonuNormalizeEt } from '@/lib/markdownNormalize'
+import { slugSanitizeEt } from '@/lib/slug'
 
 async function yetkiKontrolu() {
   const supabase = await createClient()
@@ -17,7 +18,10 @@ export async function rehberKaydet(formData) {
 
   const id = formData.get('id')
   const baslik = formData.get('baslik')
-  const slug = formData.get('slug')
+  // Son güvence: ayrıştırma ya da elle giriş kaynaklı olsun, DB'ye asla
+  // tek satırı/[a-z0-9-] kümesini aşan bir slug gitmesin (bkz. proje
+  // geçmişi — haberler.id=208'de görülen ayrıştırma kaynaklı bozulma).
+  const slug = slugSanitizeEt(formData.get('slug'))
   const kategori = formData.get('kategori')
   const ozet = formData.get('ozet')
   const govde = markdownNormalizeEt(formData.get('govde'))
