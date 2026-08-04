@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { slugUret, slugSanitizeEt } from '@/lib/slug'
 import { boyutFormatla } from '@/lib/gorselOptimizasyon'
 import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
-import { etiketliMetniAyristir } from '@/lib/etiketliMetniAyristir'
+import { etiketliMetniAyristir, ilkSatiraIndir } from '@/lib/etiketliMetniAyristir'
 import KopyalaButonu from './KopyalaButonu'
 import RehberPanel from './RehberPanel'
 import {
@@ -368,7 +368,12 @@ export default function AdminPortal() {
     if (!redaksiyonMetni.trim()) return
     const a = redaksiyonMetniniAyristir(redaksiyonMetni)
 
-    setBaslik(a.baslik || '')
+    // BAŞLIK doğası gereği tek satırlıktır — bir sonraki etiket
+    // tanınamazsa (bkz. proje geçmişi, haberler.id=209) bu koşulsuz kesme,
+    // takip eden satırların hem görünen başlığa hem de aşağıdaki otomatik
+    // slug üretimine sızmasını engeller.
+    const temizBaslik = ilkSatiraIndir(a.baslik || '')
+    setBaslik(temizBaslik)
     // URL Slug yalnızca metinde açıkça verilmişse aynen kullanılır (ve
     // otomatik üretim mantığı ezilir); verilmemişse başlıktan otomatik
     // üretim akışı (yukarıdaki useEffect) olduğu gibi işlemeye devam eder.
@@ -385,7 +390,7 @@ export default function AdminPortal() {
       setSlug(slugDegeri)
       setSlugManuel(true)
     } else if (!slugManuel) {
-      slugDegeri = a.baslik ? slugUret(a.baslik) : slug
+      slugDegeri = temizBaslik ? slugUret(temizBaslik) : slug
     }
 
     const eslesenKategori = a.kategori

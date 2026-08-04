@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { slugUret, slugSanitizeEt } from '@/lib/slug'
 import { boyutFormatla } from '@/lib/gorselOptimizasyon'
 import { isoToDatetimeLocal, dosyaYukle } from '@/lib/adminYardimcilari'
-import { etiketliMetniAyristir, sssBlokuAyristir } from '@/lib/etiketliMetniAyristir'
+import { etiketliMetniAyristir, sssBlokuAyristir, ilkSatiraIndir } from '@/lib/etiketliMetniAyristir'
 import { REHBER_KATEGORILERI } from '@/lib/rehberKategorileri'
 import { rehberKaydet, rehberSil } from './rehberActions'
 import KopyalaButonu from './KopyalaButonu'
@@ -178,7 +178,11 @@ export default function RehberPanel({ activeTab, onActiveTabDegistir, mesaj, set
     if (!redaksiyonMetni.trim()) return
     const a = etiketliMetniAyristir(redaksiyonMetni, REHBER_ETIKETLERI)
 
-    setBaslik(a.baslik || '')
+    // BAŞLIK doğası gereği tek satırlıktır — bir sonraki etiket
+    // tanınamazsa (bkz. proje geçmişi, haberler.id=209) bu koşulsuz kesme,
+    // takip eden satırların hem görünen başlığa hem de aşağıdaki otomatik
+    // slug üretimine sızmasını engeller.
+    setBaslik(ilkSatiraIndir(a.baslik || ''))
     // URL Slug yalnızca metinde açıkça verilmişse aynen kullanılır (ve
     // otomatik üretim mantığı ezilir); verilmemişse başlıktan otomatik
     // üretim akışı (yukarıdaki useEffect) olduğu gibi işlemeye devam eder.
