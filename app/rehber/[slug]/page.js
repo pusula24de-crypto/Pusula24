@@ -5,6 +5,7 @@ import remarkBreaks from 'remark-breaks'
 import { FaClockRotateLeft } from 'react-icons/fa6'
 import { createClient } from '@/lib/supabase/server'
 import { formatTarih } from '@/lib/format'
+import { MARKDOWN_BILESENLERI } from '@/lib/markdownBilesenleri'
 import PaylasimButonlari from '@/components/PaylasimButonlari'
 import RehberSSS from '@/components/RehberSSS'
 import { SITE_URL } from '@/lib/site'
@@ -178,7 +179,7 @@ export default async function RehberDetay({ params }) {
         )}
 
         <article className="prose prose-lg prose-headings:font-heading prose-a:text-blue-600 hover:prose-a:text-blue-700 mx-auto mt-8 max-w-2xl">
-          <Markdown remarkPlugins={[remarkBreaks]}>{rehber.govde}</Markdown>
+          <Markdown remarkPlugins={[remarkBreaks]} components={MARKDOWN_BILESENLERI}>{rehber.govde}</Markdown>
         </article>
 
         <RehberSSS sss={sss} />

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Markdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
 import { formatTarih } from '@/lib/format'
+import { MARKDOWN_BILESENLERI } from '@/lib/markdownBilesenleri'
 import PaylasimButonlari from './PaylasimButonlari'
 import HaberGaleri from './HaberGaleri'
 import HaberVideo from './HaberVideo'
@@ -86,7 +87,7 @@ export default function HaberIcerik({ haber, oncelikli = false }) {
             Admin panelden yapıştırılan metinlerde paragraflar arası çift
             boşluk kaybolsa bile satırlar birbirine "dümdüz" akmaz, en azından
             alt alta düzgün ayrışır. */}
-        <Markdown remarkPlugins={[remarkBreaks]}>{haber.govde}</Markdown>
+        <Markdown remarkPlugins={[remarkBreaks]} components={MARKDOWN_BILESENLERI}>{haber.govde}</Markdown>
       </article>
 
       {haber.galeri && haber.galeri.length > 0 && <HaberGaleri galeri={haber.galeri} />}
