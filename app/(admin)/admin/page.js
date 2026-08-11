@@ -44,6 +44,8 @@ const REDAKSIYON_ETIKETLERI = [
   ['xAnaGonderi', 'X — ANA GÖNDERİ:'],
   ['xIlkYanit', 'X — İLK YANIT:'],
   ['reelsMetni', '[REELS — TIKTOK/YOUTUBE] VİDEO METNİ:'],
+  ['tiktokBaslik', 'TIKTOK BAŞLIĞI:'],
+  ['tiktokAciklama', 'TIKTOK AÇIKLAMASI:'],
 ]
 
 // Redaksiyon metnini sabit etiketlere göre ayrıştırır. Her etiketin metin
@@ -260,6 +262,8 @@ export default function AdminPortal() {
   const [xAnaGonderi, setXAnaGonderi] = useState('')
   const [xIlkYanit, setXIlkYanit] = useState('')
   const [reelsMetni, setReelsMetni] = useState('')
+  const [tiktokBaslik, setTiktokBaslik] = useState('')
+  const [tiktokAciklama, setTiktokAciklama] = useState('')
   const [yayinZamani, setYayinZamani] = useState('')
 
   const [yeniKatAd, setYeniKatAd] = useState('')
@@ -419,6 +423,11 @@ export default function AdminPortal() {
     setInstagramMetni(a.instagramMetni || '')
     setXAnaGonderi(a.xAnaGonderi || '')
     setReelsMetni(a.reelsMetni || '')
+    // TikTok Başlığı/Açıklaması: Instagram/Reels metinleriyle aynı sebepten
+    // [LİNK] otomasyonu UYGULANMAZ — TikTok gönderi metninde tıklanabilir
+    // link çalışmaz.
+    setTiktokBaslik(a.tiktokBaslik || '')
+    setTiktokAciklama(a.tiktokAciklama || '')
     setGorselPromptu(a.gorselPromptu || '')
 
     setMesaj({ tip: 'success', icerik: 'Metin ayrıştırıldı, alanlar dolduruldu. Kaydetmeden önce kontrol edin.' })
@@ -455,6 +464,8 @@ export default function AdminPortal() {
     formData.append('x_ana_gonderi', xAnaGonderi)
     formData.append('x_ilk_yanit', xIlkYanit)
     formData.append('reels_metni', reelsMetni)
+    formData.append('tiktok_baslik', tiktokBaslik)
+    formData.append('tiktok_aciklama', tiktokAciklama)
     formData.append(
       'galeri_json',
       JSON.stringify(
@@ -612,6 +623,8 @@ export default function AdminPortal() {
     setXAnaGonderi(h.x_ana_gonderi || '')
     setXIlkYanit(h.x_ilk_yanit || '')
     setReelsMetni(h.reels_metni || '')
+    setTiktokBaslik(h.tiktok_baslik || '')
+    setTiktokAciklama(h.tiktok_aciklama || '')
     // Görsel promptu veritabanında saklanmaz, yapıştır kutusu da her
     // düzenleme açılışında temiz başlar.
     setGorselPromptu('')
@@ -728,6 +741,8 @@ export default function AdminPortal() {
     setXAnaGonderi('')
     setXIlkYanit('')
     setReelsMetni('')
+    setTiktokBaslik('')
+    setTiktokAciklama('')
     setYayinZamani('')
     setGorselBoyutBilgisi(null)
   }
@@ -1037,6 +1052,30 @@ export default function AdminPortal() {
                   rows={4}
                   value={reelsMetni}
                   onChange={(e) => setReelsMetni(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">TikTok Başlığı</label>
+                  <KopyalaButonu metin={tiktokBaslik} />
+                </div>
+                <textarea
+                  rows={2}
+                  value={tiktokBaslik}
+                  onChange={(e) => setTiktokBaslik(e.target.value)}
+                  className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-medium">TikTok Açıklaması</label>
+                  <KopyalaButonu metin={tiktokAciklama} />
+                </div>
+                <textarea
+                  rows={4}
+                  value={tiktokAciklama}
+                  onChange={(e) => setTiktokAciklama(e.target.value)}
                   className="w-full bg-gray-950 border border-gray-800 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-red-600"
                 />
               </div>

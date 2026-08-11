@@ -72,6 +72,12 @@ export async function haberKaydet(formData) {
   const instagram_metni = satirSonuNormalizeEt(formData.get('instagram_metni')) || null
   const x_ana_gonderi = satirSonuNormalizeEt(formData.get('x_ana_gonderi')) || null
   const reels_metni = satirSonuNormalizeEt(formData.get('reels_metni')) || null
+  // TikTok Başlığı/Açıklaması: diğer sosyal metinlerle aynı satırSonuNormalizeEt
+  // temizliğini alır ama [LİNK] değişimine TABI DEĞİL (Instagram/Reels
+  // metinleriyle aynı sebepten — TikTok gönderi metninde tıklanabilir link
+  // çalışmaz).
+  const tiktok_baslik = satirSonuNormalizeEt(formData.get('tiktok_baslik')) || null
+  const tiktok_aciklama = satirSonuNormalizeEt(formData.get('tiktok_aciklama')) || null
   const facebook_metni_ham = satirSonuNormalizeEt(formData.get('facebook_metni')) || null
   const x_ilk_yanit_ham = satirSonuNormalizeEt(formData.get('x_ilk_yanit')) || null
   const facebook_metni = facebook_metni_ham?.replaceAll(LINK_YER_TUTUCU, haberLinki) ?? null
@@ -139,6 +145,8 @@ export async function haberKaydet(formData) {
     x_ana_gonderi,
     x_ilk_yanit,
     reels_metni,
+    tiktok_baslik,
+    tiktok_aciklama,
     yazar_id: user.id,
     yayin_tarihi,
   }
