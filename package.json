@@ -19,10 +19,10 @@
     "react-icons": "^5.7.0",
     "react-markdown": "^10.1.0",
     "remark-breaks": "^4.0.0",
-    "sharp": "^0.35.3"
+    "sharp": "0.34.4"
   },
   "overrides": {
-    "sharp": "^0.35.3"
+    "sharp": "0.34.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -38,8 +38,7 @@
     "typescript": "^5"
   },
   "allowScripts": {
-    "sharp@0.34.5": true,
-    "sharp@0.35.3": true,
+    "sharp@0.34.4": true,
     "unrs-resolver@1.12.2": true
   }
 }
